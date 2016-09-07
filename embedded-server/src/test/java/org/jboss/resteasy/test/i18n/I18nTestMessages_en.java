@@ -9,7 +9,7 @@ import java.util.Locale;
  *
  * Copyright Sep 1, 2015
  */
-public class TestMessages_en extends TestMessagesAbstract
+public class I18nTestMessages_en extends TestMessagesAbstract
 {  
    @Override
    protected Locale getLocale()
