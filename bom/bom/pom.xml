@@ -1,0 +1,33 @@
+<!--
+  ~ Copyright The RESTEasy Authors
+  ~ SPDX-License-Identifier: Apache-2.0
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>dev.resteasy.vertx</groupId>
+        <artifactId>resteasy-vertx-parent</artifactId>
+        <version>1.0.0.Beta1-SNAPSHOT</version>
+        <relativePath>../../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>resteasy-vertx-bom</artifactId>
+    <packaging>pom</packaging>
+
+    <name>RESTEasy Vert.x Maven (BOM)</name>
+    <description>User BOM for RESTEasy Vert.x</description>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>dev.resteasy.vertx</groupId>
+                <artifactId>resteasy-vertx-embedded-server</artifactId>
+                <version>${project.version</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+</project>

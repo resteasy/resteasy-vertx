@@ -1,8 +1,5 @@
 package org.jboss.resteasy.test.asyncio;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
-
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
@@ -33,32 +30,28 @@ public class SSEResource {
     public void send(@Context SseEventSink sink, @Context Sse sse) {
         Thread t = new Thread(new Runnable() {
             public void run() {
+                SseEventSink s = sink;
+                s.send(sse.newEvent("HELLO"));
+                s.close();
+                isClosed = s.isClosed();
+                if (!isClosed)
+                    return;
+                s.close();
+                isClosed = s.isClosed();
+                if (!isClosed)
+                    return;
+                s.close();
+                isClosed = s.isClosed();
+                if (!isClosed)
+                    return;
                 try {
-                    SseEventSink s = sink;
-                    s.send(sse.newEvent("HELLO"));
-                    s.close();
-                    isClosed = s.isClosed();
-                    if (!isClosed)
-                        return;
-                    s.close();
-                    isClosed = s.isClosed();
-                    if (!isClosed)
-                        return;
-                    s.close();
-                    isClosed = s.isClosed();
-                    if (!isClosed)
-                        return;
-                    try {
-                        s.send(sse.newEvent("SOMETHING")).exceptionally(t -> {
-                            if (t instanceof IllegalStateException)
-                                exception = true;
-                            return null;
-                        });
-                    } catch (IllegalStateException ise) {
-                        exception = true;
-                    }
-                } catch (IOException e) {
-                    throw new UncheckedIOException(e);
+                    s.send(sse.newEvent("SOMETHING")).exceptionally(t -> {
+                        if (t instanceof IllegalStateException)
+                            exception = true;
+                        return null;
+                    });
+                } catch (IllegalStateException ise) {
+                    exception = true;
                 }
             }
         });

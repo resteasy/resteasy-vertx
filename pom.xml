@@ -1,0 +1,368 @@
+<!--
+  ~ Copyright The RESTEasy Authors
+  ~ SPDX-License-Identifier: Apache-2.0
+  -->
+
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/maven-v4_0_0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.jboss</groupId>
+        <artifactId>jboss-parent</artifactId>
+        <version>50</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>dev.resteasy.vertx</groupId>
+    <artifactId>resteasy-vertx-parent</artifactId>
+    <version>1.0.0.Beta1-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <name>RESTEasy Vert.x</name>
+    <description>RESTEasy Vert.x Support</description>
+    <url>https://resteasy.dev</url>
+    <organization>
+        <name>RESTEasy: WildFly Commonhaus Organization</name>
+        <url>https://resteasy.dev</url>
+    </organization>
+    <licenses>
+        <license>
+            <name>Apache License 2.0</name>
+            <url>https://repository.jboss.org/licenses/apache-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <id>jamezp</id>
+            <name>James Perkins</name>
+            <email>jperkins@redhat.com</email>
+            <organization>IBM</organization>
+            <roles>
+                <role>project-owner</role>
+            </roles>
+            <timezone>-8</timezone>
+        </developer>
+    </developers>
+    <contributors/>
+
+    <modules>
+        <module>bom/bom</module>
+        <module>bom/project-bom</module>
+        <module>bom/test-bom</module>
+        <module>embedded-server</module>
+    </modules>
+
+    <scm>
+        <connection>scm:git:git://github.com/resteasy/resteasy-vertx.git</connection>
+        <developerConnection>scm:git:git@github.com:resteasy/resteasy-vertx.git</developerConnection>
+        <url>https://github.com/resteasy/resteasy-vertx/tree/main/</url>
+    </scm>
+    <issueManagement>
+        <system>GitHub</system>
+        <url>https://github.com/resteasy/resteasy-vertx/issues</url>
+    </issueManagement>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <!-- Require Java 17 -->
+        <jdk.min.version>17</jdk.min.version>
+        <!-- Compile to Java 11 -->
+        <maven.compiler.release>11</maven.compiler.release>
+
+        <!-- print logs to file by default -->
+        <maven.test.redirectTestOutputToFile>true</maven.test.redirectTestOutputToFile>
+        <!-- maven-enforcer-plugin -->
+        <maven.min.version>3.9.0</maven.min.version>
+
+        <!-- Dependency versions -->
+        <version.io.vertx>4.5.13</version.io.vertx>
+        <version.org.jboss.logging.jboss-logging-tools>3.0.4.Final</version.org.jboss.logging.jboss-logging-tools>
+        <version.org.jboss.resteasy>6.2.12.Final</version.org.jboss.resteasy>
+
+        <!-- Plugins versions -->
+        <version.formatter.maven.plugin>2.27.0</version.formatter.maven.plugin>
+        <version.impsort.maven.plugin>1.12.0</version.impsort.maven.plugin>
+
+        <!-- Test options -->
+        <additionalJvmArgs>-Djava.io.tmpdir=${project.build.directory}</additionalJvmArgs>
+    </properties>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <configuration>
+                        <annotationProcessorPaths>
+                            <path>
+                                <groupId>org.jboss.logging</groupId>
+                                <artifactId>jboss-logging-processor</artifactId>
+                                <version>${version.org.jboss.logging.jboss-logging-tools}</version>
+                            </path>
+                        </annotationProcessorPaths>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>check-style</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>checkstyle</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>ban-bad-dependencies</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <bannedDependencies>
+                                    <searchTransitive>true</searchTransitive>
+                                    <excludes>
+                                        <exclude>javax.activation:activation</exclude>
+                                        <exclude>javax.activation:javax.activation-api</exclude>
+                                        <exclude>javax.enterprise:cdi-api</exclude>
+                                        <exclude>javax.inject:javax.inject</exclude>
+                                        <exclude>javax.json:javax.json-api</exclude>
+                                        <exclude>javax.persistence:javax.persistence-api</exclude>
+                                        <exclude>javax.persistence:persistence-api</exclude>
+                                        <exclude>javax.security.enterprise:javax.security.enterprise-api</exclude>
+                                        <exclude>javax.servlet:servlet-api</exclude>
+                                        <exclude>javax.transaction:jta</exclude>
+                                        <exclude>javax.validation:validation-api</exclude>
+                                        <exclude>javax.xml:jaxrpc-api</exclude>
+                                        <exclude>javax.xml.bind:jaxb-api</exclude>
+                                        <exclude>javax.xml.soap:saaj-api</exclude>
+                                        <exclude>javax.xml.stream:stax-api</exclude>
+                                        <exclude>log4j:log4j</exclude>
+                                    </excludes>
+                                </bannedDependencies>
+                            </rules>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>dep-convergence</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <dependencyConvergence/>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- Format source files -->
+            <plugin>
+                <groupId>net.revelc.code.formatter</groupId>
+                <artifactId>formatter-maven-plugin</artifactId>
+                <version>${version.formatter.maven.plugin}</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>dev.resteasy.tools</groupId>
+                        <artifactId>ide-config</artifactId>
+                        <version>3</version>
+                    </dependency>
+                </dependencies>
+                <configuration>
+                    <!-- store outside of target to speed up formatting when mvn clean is used -->
+                    <cachedir>.cache</cachedir>
+                    <configFile>eclipse-code-formatter.xml</configFile>
+                    <configXmlFile>resteasy-xml.properties</configXmlFile>
+                    <lineEnding>LF</lineEnding>
+                    <includeResources>true</includeResources>
+                    <removeTrailingWhitespace>true</removeTrailingWhitespace>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>format</id>
+                        <goals>
+                            <goal>format</goal>
+                        </goals>
+                        <phase>process-sources</phase>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>net.revelc.code</groupId>
+                <artifactId>impsort-maven-plugin</artifactId>
+                <version>${version.impsort.maven.plugin}</version>
+                <configuration>
+                    <!-- store outside of target to speed up formatting when mvn clean is used -->
+                    <cachedir>.cache</cachedir>
+                    <groups>java.,javax.,jakarta.,org.,com.</groups>
+                    <staticGroups>*</staticGroups>
+                    <removeUnused>true</removeUnused>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>sort-imports</id>
+                        <goals>
+                            <goal>sort</goal>
+                        </goals>
+                        <phase>process-sources</phase>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>format-check</id>
+            <build>
+                <plugins>
+                    <!-- Validate formatting -->
+                    <plugin>
+                        <groupId>net.revelc.code.formatter</groupId>
+                        <artifactId>formatter-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>validate-format</id>
+                                <phase>validate</phase>
+                                <goals>
+                                    <goal>validate</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>net.revelc.code</groupId>
+                        <artifactId>impsort-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>check-import-sort</id>
+                                <phase>validate</phase>
+                                <goals>
+                                    <goal>check</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>maven-central-release</id>
+            <activation>
+                <property>
+                    <name>maven.central.release</name>
+                </property>
+            </activation>
+            <properties>
+                <!-- Maven Central properties -->
+                <repo.sonatype.url>https://central.sonatype.com</repo.sonatype.url>
+                <sonatype.server.id>central</sonatype.server.id>
+            </properties>
+
+            <distributionManagement>
+                <snapshotRepository>
+                    <id>${sonatype.server.id}</id>
+                    <url>${repo.sonatype.url}</url>
+                </snapshotRepository>
+                <repository>
+                    <id>${sonatype.server.id}</id>
+                    <url>${repo.sonatype.url}</url>
+                </repository>
+            </distributionManagement>
+
+            <build>
+                <plugins>
+                    <!-- Semantically ordered -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-enforcer-plugin</artifactId>
+                        <configuration>
+                            <rules>
+                                <requireReleaseDeps>
+                                    <message>No Snapshots Allowed!</message>
+                                </requireReleaseDeps>
+                            </rules>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>attach-sources</id>
+                                <goals>
+                                    <goal>jar-no-fork</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <configuration>
+                            <additionalOptions>
+                                <additionalOption>-html5</additionalOption>
+                            </additionalOptions>
+                            <detectLinks>true</detectLinks>
+                            <doclint>none</doclint>
+                            <failOnError>false</failOnError>
+                            <show>public</show>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>attach-javadocs</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                                <configuration>
+                                    <!-- Prevent gpg from using pinentry programs -->
+                                    <gpgArguments>
+                                        <arg>--pinentry-mode</arg>
+                                        <arg>loopback</arg>
+                                    </gpgArguments>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.sonatype.central</groupId>
+                        <artifactId>central-publishing-maven-plugin</artifactId>
+                        <version>0.8.0</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <publishingServerId>${sonatype.server.id}</publishingServerId>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>

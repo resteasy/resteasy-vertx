@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright The RESTEasy Authors
+  ~ SPDX-License-Identifier: Apache-2.0
+  -->
+
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <parent>
+        <groupId>dev.resteasy.vertx</groupId>
+        <artifactId>resteasy-vertx-parent</artifactId>
+        <version>1.0.0.Beta1-SNAPSHOT</version>
+        <relativePath>../../pom.xml</relativePath>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>resteasy-vertx-test-bom</artifactId>
+    <packaging>pom</packaging>
+    <name>RESTEasy Vert.x: Test BOM</name>
+
+    <properties>
+        <version.dev.resteasy.junit.extension>1.0.0.Beta1</version.dev.resteasy.junit.extension>
+        <version.org.eclipse.parsson>1.1.7</version.org.eclipse.parsson>
+        <version.org.junit>5.13.4</version.org.junit>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- First import the production BOM -->
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>resteasy-vertx-project-bom</artifactId>
+                <version>${project.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.junit</groupId>
+                <artifactId>junit-bom</artifactId>
+                <version>${version.org.junit}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.vertx</groupId>
+                <artifactId>vertx-core</artifactId>
+                <version>${version.io.vertx}</version>
+                <classifier>tests</classifier>
+                <scope>test</scope>
+                <type>test-jar</type>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.fasterxml.jackson.core</groupId>
+                        <artifactId>*</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.fasterxml.jackson.dataformat</groupId>
+                        <artifactId>*</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.fasterxml.jackson.datatype</groupId>
+                        <artifactId>*</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>io.netty</groupId>
+                        <artifactId>*</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+            <dependency>
+                <groupId>dev.resteasy.junit.extension</groupId>
+                <artifactId>resteasy-junit-extension</artifactId>
+                <version>${version.dev.resteasy.junit.extension}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.eclipse.parsson</groupId>
+                <artifactId>parsson</artifactId>
+                <version>${version.org.eclipse.parsson}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.jboss.resteasy</groupId>
+                <artifactId>server-adapter-test-base</artifactId>
+                <version>${version.org.jboss.resteasy}</version>
+                <scope>test</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+</project>

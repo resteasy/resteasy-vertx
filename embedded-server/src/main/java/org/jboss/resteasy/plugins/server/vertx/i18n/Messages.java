@@ -8,27 +8,23 @@ import org.jboss.logging.annotations.MessageBundle;
 /**
  *
  * @author <a href="ron.sigal@jboss.com">Ron Sigal</a>
- * @version $Revision: 1.1 $
- *
- *          Copyright Sep 1, 2015
  */
-@MessageBundle(projectCode = "RESTEASY")
+@MessageBundle(projectCode = "RESTEASY-VERTX")
 public interface Messages {
     Messages MESSAGES = org.jboss.logging.Messages.getBundle(MethodHandles.lookup(), Messages.class);
-    int BASE = 19500;
 
-    @Message(id = BASE + 0, value = "Already committed")
+    @Message(id = 10, value = "Already committed")
     String alreadyCommitted();
 
-    @Message(id = BASE + 5, value = "Already suspended")
+    @Message(id = 20, value = "Already suspended")
     String alreadySuspended();
 
-    @Message(id = BASE + 10, value = "Chunk size must be at least 1")
+    @Message(id = 30, value = "Chunk size must be at least 1")
     String chunkSizeMustBeAtLeastOne();
 
-    @Message(id = BASE + 20, value = "response is committed")
+    @Message(id = 40, value = "response is committed")
     String responseIsCommitted();
 
-    @Message(id = BASE + 25, value = "Unexpected")
+    @Message(id = 50, value = "Unexpected")
     String unexpected();
 }

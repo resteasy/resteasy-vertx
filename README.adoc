@@ -1,0 +1,31 @@
+= RESTEasy
+
+https://github.com/resteasy/resteasy-vertx/actions/workflows/maven.yml/badge.svg[Github CI,link=https://github.com/resteasy/resteasy-vertx/actions]
+
+RESTEasy Vert.x is a RESTEasy project aimed to provide integration with https://vertx.io/[Eclipse Vert.x].
+
+== Documentation
+
+To read the documentation you can https://resteasy.dev/docs[read it online].
+
+== Issues
+
+Issues are kept in https://github.com/resteasy/resteasy-vertx/issues[GitHub Issues].
+
+== Build
+
+Currently, RESTEasy Vert.x requires JDK 17+ to compile, but compiles to Java 11 bytecode.
+
+If you want to build the project without running the tests, you need to pull down a clone of the RESTEasy repository and
+run:
+
+[source,bash]
+----
+$ mvn clean install
+----
+
+== Contribute
+
+You are most welcome to contribute to RESTEasy!
+
+Read the link:./CONTRIBUTING.adoc[Contribution guidelines]

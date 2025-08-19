@@ -1,0 +1,62 @@
+# This workflow will build a Java project with Maven
+# For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-maven
+
+name: Build and Test RESTEasy Vert.x
+
+on:
+  push:
+    branches-ignore:
+      - 'dependabot/**'
+  pull_request:
+    branches:
+      - '**'
+  schedule:
+    - cron: '0 0 * * *' # Every day at 00:00 UTC
+
+# Only run the latest job
+concurrency:
+  group: '${{ github.workflow }} @ ${{ github.event.pull_request.head.label || github.head_ref || github.ref }}'
+  cancel-in-progress: true
+
+jobs:
+  format-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: 'temurin'
+          cache: 'maven'
+      - name: Validate Formatting
+        run: |
+          mvn -B validate formatter:validate -Denforcer.skip=true
+          mvn -B validate impsort:check -Denforcer.skip=true
+  build:
+    runs-on: ${{ matrix.os }}
+    needs: format-check
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, windows-latest ]
+        java: ['17', '21']
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up JDK ${{ matrix.java }}
+      uses: actions/setup-java@v4
+      with:
+        java-version: ${{ matrix.java }}
+        distribution: 'temurin'
+        cache: 'maven'
+    - name: Build with Maven - ${{ matrix.os }} - JDK ${{ matrix.java }}
+      run: mvn -B -ntp clean install -fae
+    - uses: actions/upload-artifact@v4
+      if: failure()
+      with:
+        name: surefire-reports-${{ matrix.os }}-jdk-${{ matrix.java }}
+        path: '**/surefire-reports/'
