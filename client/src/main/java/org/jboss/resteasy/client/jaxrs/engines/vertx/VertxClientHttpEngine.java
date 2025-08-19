@@ -1,3 +1,8 @@
+/*
+ * Copyright The RESTEasy Authors
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.jboss.resteasy.client.jaxrs.engines.vertx;
 
 import java.io.ByteArrayOutputStream;

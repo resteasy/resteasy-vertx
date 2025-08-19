@@ -22,6 +22,7 @@
 
     <properties>
         <version.dev.resteasy.junit.extension>1.0.0.Beta1</version.dev.resteasy.junit.extension>
+        <version.org.bouncycastle>1.78.1</version.org.bouncycastle>
         <version.org.eclipse.parsson>1.1.7</version.org.eclipse.parsson>
         <version.org.junit>5.13.4</version.org.junit>
     </properties>
@@ -74,6 +75,20 @@
                 <groupId>dev.resteasy.junit.extension</groupId>
                 <artifactId>resteasy-junit-extension</artifactId>
                 <version>${version.dev.resteasy.junit.extension}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <!-- Needed for testing on SSL connections on Windows -->
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcprov-jdk18on</artifactId>
+                <version>${version.org.bouncycastle}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcpkix-jdk18on</artifactId>
+                <version>${version.org.bouncycastle}</version>
                 <scope>test</scope>
             </dependency>
 

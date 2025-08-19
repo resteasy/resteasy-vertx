@@ -1,3 +1,8 @@
+/*
+ * Copyright The RESTEasy Authors
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.jboss.resteasy.test.client.vertx;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
