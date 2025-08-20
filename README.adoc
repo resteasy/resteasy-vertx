@@ -1,6 +1,6 @@
 = RESTEasy
 
-https://github.com/resteasy/resteasy-vertx/actions/workflows/main-build.yml/badge.svg[Github CI,link=https://github.com/resteasy/resteasy-vertx/actions]
+image:https://github.com/resteasy/resteasy-vertx/actions/workflows/main-build.yml/badge.svg[Build and Test RESTEasy Vert.x,link=https://github.com/resteasy/resteasy-vertx/actions/workflows/main-build.yml]
 
 RESTEasy Vert.x is a RESTEasy project aimed to provide integration with https://vertx.io/[Eclipse Vert.x].
 
