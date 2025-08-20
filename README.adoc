@@ -1,12 +1,48 @@
 = RESTEasy
 
-https://github.com/resteasy/resteasy-vertx/actions/workflows/maven.yml/badge.svg[Github CI,link=https://github.com/resteasy/resteasy-vertx/actions]
+https://github.com/resteasy/resteasy-vertx/actions/workflows/main-build.yml/badge.svg[Github CI,link=https://github.com/resteasy/resteasy-vertx/actions]
 
 RESTEasy Vert.x is a RESTEasy project aimed to provide integration with https://vertx.io/[Eclipse Vert.x].
 
 == Documentation
 
 To read the documentation you can https://resteasy.dev/docs[read it online].
+
+=== Maven Dependency Usage
+
+To add the dependencies in Maven you can simply add the BOM.
+
+[source,xml]
+----
+<dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>dev.resteasy.vertx</groupId>
+            <artifactId>resteasy-vertx-bom</artifactId>
+            <version>${version.dev.resteasy.vertx}</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+    </dependencies>
+</dependencyManagement>
+----
+
+Then you can use either the embedded server or client dependencies.
+
+[source,xml]
+----
+<dependencies>
+    <dependency>
+        <groupId>dev.resteasy.vertx</groupId>
+        <artifactId>resteasy-vertx-client</artifactId>
+    </dependency>
+
+    <dependency>
+        <groupId>dev.resteasy.vertx</groupId>
+        <artifactId>resteasy-vertx-embedded-server</artifactId>
+    </dependency>
+</dependencies>
+----
 
 == Issues
 
