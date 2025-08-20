@@ -17,7 +17,7 @@
 
     <groupId>dev.resteasy.vertx</groupId>
     <artifactId>resteasy-vertx-parent</artifactId>
-    <version>1.0.1.Final</version>
+    <version>1.0.2.Final-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>RESTEasy Vert.x</name>
