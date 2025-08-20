@@ -27,6 +27,11 @@
                 <artifactId>resteasy-vertx-embedded-server</artifactId>
                 <version>${project.version</version>
             </dependency>
+            <dependency>
+                <groupId>dev.resteasy.vertx</groupId>
+                <artifactId>resteasy-vertx-client</artifactId>
+                <version>${project.version</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 

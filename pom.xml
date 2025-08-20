@@ -54,6 +54,7 @@
         <module>bom/project-bom</module>
         <module>bom/test-bom</module>
         <module>embedded-server</module>
+        <module>client</module>
     </modules>
 
     <scm>
