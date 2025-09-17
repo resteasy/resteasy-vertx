@@ -2,7 +2,6 @@ package org.jboss.resteasy.plugins.server.vertx;
 
 import java.io.IOException;
 
-import io.vertx.core.internal.buffer.BufferInternal;
 import org.jboss.resteasy.core.SynchronousDispatcher;
 import org.jboss.resteasy.plugins.server.embedded.SecurityDomain;
 import org.jboss.resteasy.plugins.server.vertx.i18n.LogMessages;
@@ -17,6 +16,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
+import io.vertx.core.internal.buffer.BufferInternal;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
