@@ -16,6 +16,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
+import io.vertx.core.internal.buffer.BufferInternal;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
@@ -57,7 +58,8 @@ public class VertxRequestHandler implements Handler<HttpServerRequest> {
             VertxHttpRequest vertxRequest = new VertxHttpRequest(ctx, request, uriInfo, dispatcher.getDispatcher(),
                     vertxResponse, false);
             if (buff.length() > 0) {
-                ByteBufInputStream in = new ByteBufInputStream(buff.getByteBuf());
+                BufferInternal bufferInternal = (BufferInternal) buff;
+                ByteBufInputStream in = new ByteBufInputStream(bufferInternal.getByteBuf());
                 vertxRequest.setInputStream(in);
             }
 

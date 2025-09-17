@@ -78,7 +78,7 @@ public class ChunkOutputStream extends AsyncOutputStream {
         int dataLengthLeftToWrite = len;
         int dataToWriteOffset = off;
         int spaceLeftInCurrentChunk;
-        List<Future> futures;
+        List<Future<?>> futures;
         if (handler != null) {
             futures = new ArrayList<>();
         } else {
@@ -95,13 +95,13 @@ public class ChunkOutputStream extends AsyncOutputStream {
             } else {
                 promise = null;
             }
-            flush(promise);
+            flush(promise == null ? null : promise::handle);
         }
         if (dataLengthLeftToWrite > 0) {
             buffer.appendBytes(b, dataToWriteOffset, dataLengthLeftToWrite);
         }
         if (handler != null) {
-            CompositeFuture.all(futures).onComplete(handler);
+            Future.all(futures).onComplete(handler);
         }
     }
 
@@ -120,7 +120,11 @@ public class ChunkOutputStream extends AsyncOutputStream {
         if (!response.isCommitted())
             response.prepareChunkStream();
         response.checkException();
-        response.response.write(buffer, handler);
+        Future<Void> future = response.response.write(buffer);
+        if (handler != null) {
+            future.onComplete(handler);
+        }
+        ;
         buffer = Buffer.buffer();
         super.flush();
     }
