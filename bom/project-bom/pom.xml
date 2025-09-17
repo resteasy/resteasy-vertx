@@ -23,7 +23,7 @@
     <properties>
         <!-- Dependency versions -->
         <version.jakarta.ee>10.0.0</version.jakarta.ee>
-        <version.io.netty.netty>4.2.5.Final</version.io.netty.netty>
+        <version.io.netty.netty>4.2.6.Final</version.io.netty.netty>
         <version.org.jboss.logging>3.6.1.Final</version.org.jboss.logging>
     </properties>
 
