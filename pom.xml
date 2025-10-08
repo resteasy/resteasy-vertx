@@ -24,7 +24,7 @@
     <description>RESTEasy Vert.x Support</description>
     <url>https://resteasy.dev</url>
     <organization>
-        <name>RESTEasy: WildFly Commonhaus Organization</name>
+        <name>RESTEasy Community</name>
         <url>https://resteasy.dev</url>
     </organization>
     <licenses>
@@ -86,11 +86,28 @@
         <version.org.jboss.resteasy>6.2.14.Final</version.org.jboss.resteasy>
 
         <!-- Plugins versions -->
+        <version.central.publishing.maven.plugin>0.9.0</version.central.publishing.maven.plugin>
         <version.formatter.maven.plugin>2.29.0</version.formatter.maven.plugin>
         <version.impsort.maven.plugin>1.12.0</version.impsort.maven.plugin>
 
         <!-- Test options -->
         <additionalJvmArgs>-Djava.io.tmpdir=${project.build.directory}</additionalJvmArgs>
+
+        <!-- maven-release-plugin configuration -->
+        <autoVersionSubmodules>true</autoVersionSubmodules>
+        <releaseProfiles>release</releaseProfiles>
+        <signTag>true</signTag>
+        <tagNameFormat>v@{project.version}</tagNameFormat>
+        <arguments>-DskipTests</arguments>
+        <!-- Do not push changes by default when using the maven-release-plugin:prepare -->
+        <pushChanges>true</pushChanges>
+        <!-- Use the local directory when using perform -->
+        <localCheckout>true</localCheckout>
+        <!-- Maven Central properties -->
+        <repo.sonatype.url>https://central.sonatype.com</repo.sonatype.url>
+        <sonatype.server.id>central</sonatype.server.id>
+        <autoPublish>true</autoPublish>
+        <waitUntil>validated</waitUntil>
     </properties>
 
     <build>
@@ -263,17 +280,12 @@
             </build>
         </profile>
         <profile>
-            <id>maven-central-release</id>
+            <id>release</id>
             <activation>
                 <property>
-                    <name>maven.central.release</name>
+                    <name>release</name>
                 </property>
             </activation>
-            <properties>
-                <!-- Maven Central properties -->
-                <repo.sonatype.url>https://central.sonatype.com</repo.sonatype.url>
-                <sonatype.server.id>central</sonatype.server.id>
-            </properties>
 
             <distributionManagement>
                 <snapshotRepository>
@@ -289,17 +301,6 @@
             <build>
                 <plugins>
                     <!-- Semantically ordered -->
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-enforcer-plugin</artifactId>
-                        <configuration>
-                            <rules>
-                                <requireReleaseDeps>
-                                    <message>No Snapshots Allowed!</message>
-                                </requireReleaseDeps>
-                            </rules>
-                        </configuration>
-                    </plugin>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-source-plugin</artifactId>
@@ -356,10 +357,13 @@
                     <plugin>
                         <groupId>org.sonatype.central</groupId>
                         <artifactId>central-publishing-maven-plugin</artifactId>
-                        <version>0.9.0</version>
+                        <version>${version.central.publishing.maven.plugin}</version>
                         <extensions>true</extensions>
                         <configuration>
                             <publishingServerId>${sonatype.server.id}</publishingServerId>
+                            <autoPublish>${autoPublish}</autoPublish>
+                            <waitUntil>${waitUntil}</waitUntil>
+                            <deploymentName>${project.groupId}-${project.artifactId}-${project.version}</deploymentName>
                         </configuration>
                     </plugin>
                 </plugins>
