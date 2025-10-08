@@ -31,9 +31,9 @@
         <dependencies>
             <!-- First import the production BOM -->
             <dependency>
-                <groupId>${project.groupId}</groupId>
+                <groupId>dev.resteasy.vertx</groupId>
                 <artifactId>resteasy-vertx-project-bom</artifactId>
-                <version>${project.version}</version>
+                <version>2.0.0.Beta1-SNAPSHOT</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
