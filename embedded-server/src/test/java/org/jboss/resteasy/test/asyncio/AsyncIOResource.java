@@ -149,13 +149,13 @@ public class AsyncIOResource {
     @GET
     @Path("async-writer-on-io-thread")
     public AsyncWriterData asyncWriterOnIoThread() {
-        return new AsyncWriterData(true, false);
+        return new AsyncWriterData(false, "async-io");
     }
 
     @GET
     @Path("slow-async-writer-on-io-thread")
     public AsyncWriterData slowAsyncWriterOnIoThread() {
-        return new AsyncWriterData(true, true);
+        return new AsyncWriterData(true, "slow-async-io");
     }
 
     @GET
@@ -167,13 +167,13 @@ public class AsyncIOResource {
     @GET
     @Path("async-writer-on-worker-thread")
     public CompletionStage<AsyncWriterData> asyncWriterOnWorkerThread() {
-        return CompletableFuture.supplyAsync(() -> new AsyncWriterData(false, true));
+        return CompletableFuture.supplyAsync(() -> new AsyncWriterData(false, "async-worker"));
     }
 
     @GET
     @Path("slow-async-writer-on-worker-thread")
     public CompletionStage<AsyncWriterData> slowAsyncWriterOnWorkerThread() {
-        return CompletableFuture.supplyAsync(() -> new AsyncWriterData(false, true));
+        return CompletableFuture.supplyAsync(() -> new AsyncWriterData(true, "slow-async-worker"));
     }
 
     private <T> CompletionStage<T> async(T value) {
