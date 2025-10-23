@@ -40,10 +40,8 @@ import org.jboss.resteasy.spi.ResteasyDeployment;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-@Disabled("See issue 24")
 public class AsyncIOTest {
 
     static Client client;
@@ -79,11 +77,11 @@ public class AsyncIOTest {
 
         target = client.target(generateURL("/async-io/async-writer-on-io-thread"));
         val = target.request().get(String.class);
-        Assertions.assertEquals("OK", val);
+        Assertions.assertEquals("async-io", val);
 
         target = client.target(generateURL("/async-io/slow-async-writer-on-io-thread"));
         val = target.request().get(String.class);
-        Assertions.assertEquals("OK", val);
+        Assertions.assertEquals("slow-async-io", val);
 
         target = client.target(generateURL("/async-io/blocking-writer-on-worker-thread"));
         val = target.request().get(String.class);
@@ -91,11 +89,11 @@ public class AsyncIOTest {
 
         target = client.target(generateURL("/async-io/async-writer-on-worker-thread"));
         val = target.request().get(String.class);
-        Assertions.assertEquals("OK", val);
+        Assertions.assertEquals("async-worker", val);
 
         target = client.target(generateURL("/async-io/slow-async-writer-on-worker-thread"));
         val = target.request().get(String.class);
-        Assertions.assertEquals("OK", val);
+        Assertions.assertEquals("slow-async-worker", val);
     }
 
     @Test

@@ -5,6 +5,7 @@ import java.io.OutputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
@@ -15,8 +16,6 @@ import jakarta.ws.rs.ext.Provider;
 
 import org.jboss.resteasy.spi.AsyncMessageBodyWriter;
 import org.jboss.resteasy.spi.AsyncOutputStream;
-
-import io.vertx.core.Context;
 
 @Provider
 public class AsyncWriter implements AsyncMessageBodyWriter<AsyncWriterData> {
@@ -38,7 +37,6 @@ public class AsyncWriter implements AsyncMessageBodyWriter<AsyncWriterData> {
     public CompletionStage<Void> asyncWriteTo(AsyncWriterData t, Class<?> type, Type genericType,
             Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, Object> httpHeaders,
             AsyncOutputStream entityStream) {
-        String resp = t.expectOnIoThread == Context.isOnEventLoopThread() ? "OK" : "KO";
         CompletionStage<Void> start = t.simulateSlowIo
                 ? CompletableFuture.runAsync(() -> {
                     try {
@@ -48,7 +46,7 @@ public class AsyncWriter implements AsyncMessageBodyWriter<AsyncWriterData> {
                     }
                 })
                 : CompletableFuture.completedFuture(null);
-        return start.thenCompose(v -> entityStream.asyncWrite(resp.getBytes(Charset.forName("UTF-8"))))
+        return start.thenCompose(v -> entityStream.asyncWrite(t.expectedValue.getBytes(StandardCharsets.UTF_8)))
                 .thenCompose(v -> entityStream.asyncFlush());
     }
 
