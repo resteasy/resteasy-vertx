@@ -86,7 +86,7 @@
         <version.org.jboss.resteasy>6.2.14.Final</version.org.jboss.resteasy>
 
         <!-- Plugins versions -->
-        <version.central.publishing.maven.plugin>0.9.0</version.central.publishing.maven.plugin>
+        <version.central.publishing.maven.plugin>0.10.0</version.central.publishing.maven.plugin>
         <version.formatter.maven.plugin>2.29.0</version.formatter.maven.plugin>
         <version.impsort.maven.plugin>1.12.0</version.impsort.maven.plugin>
 
