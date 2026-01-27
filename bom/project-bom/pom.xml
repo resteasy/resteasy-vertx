@@ -22,7 +22,7 @@
         <!-- Dependency versions -->
         <version.jakarta.ee>10.0.0</version.jakarta.ee>
         <version.io.netty.netty>4.2.7.Final</version.io.netty.netty>
-        <version.org.jboss.logging>3.6.1.Final</version.org.jboss.logging>
+        <version.org.jboss.logging>3.6.2.Final</version.org.jboss.logging>
     </properties>
 
     <dependencyManagement>
