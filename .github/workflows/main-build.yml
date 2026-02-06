@@ -61,7 +61,7 @@ jobs:
         cache: 'maven'
     - name: Build with Maven - ${{ matrix.os }} - JDK ${{ matrix.java }}
       run: mvn -B -ntp clean install -fae '-Djava11.home=${{env.JAVA_HOME_11_X64}}'
-    - uses: actions/upload-artifact@v5
+    - uses: actions/upload-artifact@v6
       if: failure()
       with:
         name: surefire-reports-${{ matrix.os }}-jdk-${{ matrix.java }}
