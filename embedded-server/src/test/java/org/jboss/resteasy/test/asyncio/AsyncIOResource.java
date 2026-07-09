@@ -1,3 +1,7 @@
+/*
+ * Copyright The RESTEasy Authors
+ * SPDX-License-Identifier: Apache-2.0
+ */
 package org.jboss.resteasy.test.asyncio;
 
 import java.awt.image.BufferedImage;
@@ -68,9 +72,9 @@ import org.junit.jupiter.api.Assertions;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import io.vertx.core.Context;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Path("async-io")
 public class AsyncIOResource {
