@@ -3,4 +3,4 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-org.jboss.resteasy.plugins.server.vertx.VertxJaxrsServer
+dev.resteasy.server.vertx.VertxJaxrsServer
