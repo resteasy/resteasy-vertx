@@ -19,7 +19,6 @@
     <name>RESTEasy Vert.x: Test BOM</name>
 
     <properties>
-        <version.dev.resteasy.junit.extension>1.0.0.Beta1</version.dev.resteasy.junit.extension>
         <version.org.bouncycastle>1.83</version.org.bouncycastle>
         <version.org.eclipse.parsson>1.1.9</version.org.eclipse.parsson>
         <version.org.junit>5.13.4</version.org.junit>
@@ -67,13 +66,6 @@
                         <artifactId>*</artifactId>
                     </exclusion>
                 </exclusions>
-            </dependency>
-
-            <dependency>
-                <groupId>dev.resteasy.junit.extension</groupId>
-                <artifactId>resteasy-junit-extension</artifactId>
-                <version>${version.dev.resteasy.junit.extension}</version>
-                <scope>test</scope>
             </dependency>
 
             <!-- Needed for testing on SSL connections on Windows -->

@@ -6,7 +6,7 @@ RESTEasy Vert.x is a RESTEasy project aimed to provide integration with https://
 
 == Documentation
 
-To read the documentation you can https://resteasy.dev/docs[read it online].
+To read the documentation you can https://docs.resteasy.dev/[read it online].
 
 === Maven Dependency Usage
 
@@ -57,29 +57,25 @@ run:
 
 [source,bash]
 ----
-$ mvn clean install
+$ ./mvnw clean install
 ----
-
-== Contribute
-
-You are most welcome to contribute to RESTEasy!
-
-Read the link:./CONTRIBUTING.adoc[Contribution guidelines]
 
 == Releasing
 
 Releasing the project requires permission to deploy to Maven Central see https://central.sonatype.org/publish/requirements/[Maven Central Release Requirements].
 Once everything is setup, you simply need to run the `./release.sh` script. There are two required parameters:
 
-1. `-r` or `--release` which is the version you want to release
-2. `-d` or `--development` which is the next development version.
+. `-r` or `--release` which is the version you want to release
+. `-d` or `--development` which is the next development version.
 
 By default the release version cannot contain `SNAPSHOT` and the development version, must container `SNAPSHOT`.
 
 [source,bash]
+----
 .Example Command
 ----
 ./release -r 1.0.0.Final -d 1.0.1.Final-SNAPSHOT
+----
 ----
 
 === Supported Arguments
@@ -96,8 +92,16 @@ By default the release version cannot contain `SNAPSHOT` and the development ver
 | Forces to allow a SNAPSHOT suffix in release version and not require one for the development version.
 
 | `-h`, `--help`
-| No
+| N/A
 | Displays this help
+
+| `--notes-start-tag`
+| Unused
+| Passes the `--notes-from-tag` and the argument to the `gh create release` command.
+
+| `-p`, `--prerelease`
+| Unused
+| Passes the `--prerelease` to the `gh create release` command.
 
 | `-r`, `--release`
 | Yes
@@ -107,11 +111,15 @@ By default the release version cannot contain `SNAPSHOT` and the development ver
 | No
 | Executes the release in as a dry-run. Nothing will be updated or pushed.
 
+| `--no-push`
+| No
+| Executes the release in, but doesn't actually push the changes to GitHub or publish the release on Maven Central.
+Any next steps should you want to continue the release will need to be manual.
+
 | `-v`, `--verbose`
 | No
 | Prints verbose output.
 
 |===
-
 
 Any additional arguments are considered arguments for the Maven command.
