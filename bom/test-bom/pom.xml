@@ -21,7 +21,7 @@
     <properties>
         <version.org.bouncycastle>1.84</version.org.bouncycastle>
         <version.org.eclipse.parsson>1.1.9</version.org.eclipse.parsson>
-        <version.org.junit>5.13.4</version.org.junit>
+        <version.org.junit>6.1.1</version.org.junit>
     </properties>
 
     <dependencyManagement>
