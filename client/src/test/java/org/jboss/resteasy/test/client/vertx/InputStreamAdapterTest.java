@@ -57,7 +57,8 @@ public class InputStreamAdapterTest {
     @Test
     public void testPauseStreamStream() throws Exception {
         FakeStream<Buffer> stream = new FakeStream<>();
-        InputStreamAdapter adapter = new InputStreamAdapter(stream);
+        // Use explicit maxPendingSize of 256 to test pause/resume behavior
+        InputStreamAdapter adapter = new InputStreamAdapter(stream, 256);
         final byte[] line = new byte[256 + 1];
         ThreadLocalRandom.current().nextBytes(line);
         Buffer expected = Buffer.buffer(line);

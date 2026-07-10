@@ -5,7 +5,6 @@
 
 package org.jboss.resteasy.client.jaxrs.engines.vertx;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -25,6 +24,7 @@ import jakarta.ws.rs.client.InvocationCallback;
 import jakarta.ws.rs.client.ResponseProcessingException;
 import jakarta.ws.rs.core.Response;
 
+import org.jboss.logging.Logger;
 import org.jboss.resteasy.client.jaxrs.api.ClientBuilderConfiguration;
 import org.jboss.resteasy.client.jaxrs.engines.AsyncClientHttpEngine;
 import org.jboss.resteasy.client.jaxrs.internal.ClientConfiguration;
@@ -35,49 +35,103 @@ import org.jboss.resteasy.concurrent.ContextualExecutors;
 import org.jboss.resteasy.tracing.RESTEasyTracingLogger;
 import org.jboss.resteasy.util.CaseInsensitiveMap;
 
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
-import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientOptions;
+import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.RequestOptions;
 
+/**
+ * A RESTEasy HTTP client engine implementation backed by Vert.x HTTP client.
+ * <p>
+ * This engine provides asynchronous HTTP request execution using Vert.x's event-driven architecture.
+ * Request bodies are streamed using chunked transfer encoding when no explicit Content-Length is provided,
+ * preventing excessive memory consumption for large payloads.
+ * </p>
+ * <p>
+ * The engine can be configured with a custom {@link Vertx} instance, {@link HttpClientOptions},
+ * and {@link ClientBuilderConfiguration}. If no Vertx instance is provided, a default one will be created
+ * and managed by this engine.
+ * </p>
+ *
+ * @author <a href="mailto:jperkins@ibm.com">James R. Perkins</a>
+ */
 public class VertxClientHttpEngine implements AsyncClientHttpEngine {
 
+    private static final Logger LOGGER = Logger.getLogger(VertxClientHttpEngine.class);
+
     /**
-     * Client config property to set when a request timeout is needed.
+     * Client configuration property to set when a request timeout is needed.
+     * The value can be a {@link Duration}, {@link Number} (milliseconds), or a string parseable as a long.
      */
     public static final String REQUEST_TIMEOUT_MS = Vertx.class + "$RequestTimeout";
+
+    /**
+     * Default buffer size for response body streams (4KB).
+     * This balances memory usage with throughput for typical HTTP responses.
+     */
+    private static final int DEFAULT_RESPONSE_BUFFER_SIZE = 4 * 1024;
 
     private final Vertx vertx;
     private final HttpClient httpClient;
     private final ClientBuilderConfiguration configuration;
 
+    /**
+     * Creates a new engine with a default Vert.x instance and HTTP client options.
+     * The created Vert.x instance will be closed when this engine is closed.
+     */
     public VertxClientHttpEngine() {
         this.vertx = Vertx.vertx();
         this.httpClient = vertx.createHttpClient();
         this.configuration = null;
     }
 
+    /**
+     * Creates a new engine with the specified Vert.x instance and HTTP client options.
+     *
+     * @param vertx   the Vert.x instance to use
+     * @param options the HTTP client options
+     */
     public VertxClientHttpEngine(final Vertx vertx, final HttpClientOptions options) {
         this(vertx, options, null);
     }
 
+    /**
+     * Creates a new engine with the specified Vert.x instance and default HTTP client options.
+     *
+     * @param vertx the Vert.x instance to use
+     */
     public VertxClientHttpEngine(final Vertx vertx) {
         this(vertx, new HttpClientOptions());
     }
 
+    /**
+     * Creates a new engine with an existing HTTP client.
+     * <p>
+     * When using this constructor, the caller is responsible for managing the lifecycle
+     * of the HTTP client. Calling {@link #close()} will close the client but not any
+     * associated Vert.x instance.
+     * </p>
+     *
+     * @param client the HTTP client to use
+     */
     public VertxClientHttpEngine(final HttpClient client) {
         this.vertx = null;
         this.httpClient = client;
         this.configuration = null;
     }
 
+    /**
+     * Creates a new engine with the specified Vert.x instance, HTTP client options, and configuration.
+     *
+     * @param vertx         the Vert.x instance to use
+     * @param options       the HTTP client options
+     * @param configuration the client builder configuration, may be {@code null}
+     */
     public VertxClientHttpEngine(final Vertx vertx, final HttpClientOptions options,
             final ClientBuilderConfiguration configuration) {
         this.vertx = vertx;
@@ -121,7 +175,7 @@ public class VertxClientHttpEngine implements AsyncClientHttpEngine {
             final ResultExtractor<T> extractor,
             final ExecutorService executorService) {
         return submit(request).thenCompose(response -> {
-            CompletableFuture<T> tmp = new CompletableFuture<>();
+            final CompletableFuture<T> tmp = new CompletableFuture<>();
             final ExecutorService executor = resolveExecutor(executorService);
             executor.execute(() -> {
                 try {
@@ -136,35 +190,34 @@ public class VertxClientHttpEngine implements AsyncClientHttpEngine {
     }
 
     private CompletableFuture<ClientResponse> submit(final ClientInvocation request) {
-        HttpMethod method = HttpMethod.valueOf(request.getMethod());
-        Object entity = request.getEntity();
-        Buffer body;
-        if (entity != null) {
-            body = Buffer.buffer(requestContent(request));
-        } else {
-            body = null;
-        }
+        final HttpMethod method = HttpMethod.valueOf(request.getMethod());
 
-        RequestOptions options = new RequestOptions();
+        final RequestOptions options = new RequestOptions();
         options.setMethod(method);
         if (configuration != null) {
             options.setFollowRedirects(configuration.isFollowRedirects());
         }
-        MultiMap headers = MultiMap.caseInsensitiveMultiMap();
+        final MultiMap headers = MultiMap.caseInsensitiveMultiMap();
         request.getHeaders().asMap().forEach(headers::add);
-        options.setHeaders(headers);
-        if (body != null) {
-            headers.set(HttpHeaders.CONTENT_LENGTH, "" + body.length());
+
+        // If an entity is present but no content length was explicitly provided,
+        // we must use chunked transfer encoding since we are streaming and don't know the size.
+        if (request.getEntity() != null) {
+            if (!headers.contains(HttpHeaders.CONTENT_LENGTH)) {
+                headers.set(HttpHeaders.TRANSFER_ENCODING, "chunked");
+            }
         }
+
+        options.setHeaders(headers);
 
         if (!headers.contains(HttpHeaders.USER_AGENT)) {
             options.addHeader(HttpHeaders.USER_AGENT.toString(), "Vertx");
         }
 
-        URI uri = request.getUri();
+        final URI uri = request.getUri();
         options.setHost(uri.getHost());
 
-        if (-1 == uri.getPort()) {
+        if (uri.getPort() < 0) {
             if ("http".equals(uri.getScheme())) {
                 options.setPort(80);
             } else if ("https".equals(uri.getScheme())) {
@@ -189,26 +242,63 @@ public class VertxClientHttpEngine implements AsyncClientHttpEngine {
         }
 
         final CompletableFuture<ClientResponse> futureResponse = new CompletableFuture<>();
-        httpClient.request(options)
-                .map(httpClientRequest -> {
-                    final Handler<AsyncResult<HttpClientResponse>> handler = event -> {
-                        if (event.succeeded()) {
-                            final HttpClientResponse response = event.result();
-                            response.pause();
-                            futureResponse.complete(toRestEasyResponse(request.getClientConfiguration(), response));
-                            response.resume();
-                        } else {
-                            futureResponse.completeExceptionally(event.cause());
+
+        httpClient.request(options).onComplete(ar -> {
+            if (ar.failed()) {
+                futureResponse.completeExceptionally(ar.cause());
+                return;
+            }
+
+            final HttpClientRequest clientRequest = ar.result();
+
+            // 1. Setup the Response Handler
+            clientRequest.response().onComplete(res -> {
+                if (res.succeeded()) {
+                    HttpClientResponse response = res.result();
+                    response.pause();
+                    futureResponse.complete(toClientResponse(request.getClientConfiguration(), response));
+                    response.resume();
+                } else {
+                    futureResponse.completeExceptionally(res.cause());
+                }
+            });
+
+            // 2. Handle the Request Body (if present)
+            if (request.getEntity() != null) {
+                final ExecutorService executor = resolveExecutor(null);
+                // If the engine was created with just an HttpClient, vertx might be null.
+                // Fall back to Vertx.currentContext() if necessary.
+                final io.vertx.core.Context context = this.vertx != null ? this.vertx.getOrCreateContext()
+                        : Vertx.currentContext();
+
+                // Push the blocking JAX-RS writer to a worker thread
+                executor.execute(() -> {
+                    final VertxChunkedOutputStream vos = new VertxChunkedOutputStream(clientRequest, context);
+                    // Do not use try-with-resources here as this is an extended try-with-resources block. We need to
+                    // invoke the reset(0) before the stream itself is closed.
+                    //noinspection TryFinallyCanBeTryWithResources
+                    try {
+                        request.getDelegatingOutputStream().setDelegate(vos);
+                        request.writeRequestBody(request.getEntityStream());
+                    } catch (Throwable t) {
+                        clientRequest.reset(0);
+                        if (!futureResponse.completeExceptionally(t)) {
+                            LOGGER.debug("Request body write failed after response was already received", t);
                         }
-                    };
-                    if (body != null) {
-                        httpClientRequest.send(body).onComplete(handler);
-                    } else {
-                        httpClientRequest.send().onComplete(handler);
+                    } finally {
+                        try {
+                            vos.close();
+                        } catch (IOException e) {
+                            LOGGER.trace("Error closing output stream", e);
+                        }
                     }
-                    return null;
-                })
-                .onFailure(futureResponse::completeExceptionally);
+                });
+            } else {
+                // No body, just end the request
+                clientRequest.end();
+            }
+        });
+
         return futureResponse;
     }
 
@@ -243,6 +333,7 @@ public class VertxClientHttpEngine implements AsyncClientHttpEngine {
         try {
             return future.get();
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             future.cancel(true);
             throw clientException(e, null);
         } catch (ExecutionException e) {
@@ -267,7 +358,7 @@ public class VertxClientHttpEngine implements AsyncClientHttpEngine {
                 : ContextualExecutors.wrap(executorService);
     }
 
-    static RuntimeException clientException(Throwable ex, Response clientResponse) {
+    static RuntimeException clientException(final Throwable ex, final Response clientResponse) {
         RuntimeException ret;
         if (ex == null) {
             ret = new ProcessingException(new NullPointerException());
@@ -283,22 +374,10 @@ public class VertxClientHttpEngine implements AsyncClientHttpEngine {
         return ret;
     }
 
-    private static byte[] requestContent(ClientInvocation request) {
-        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        request.getDelegatingOutputStream().setDelegate(baos);
-        try {
-            request.writeRequestBody(request.getEntityStream());
-            baos.close();
-            return baos.toByteArray();
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to write the request body!", e);
-        }
-    }
+    private ClientResponse toClientResponse(final ClientConfiguration clientConfiguration,
+            final HttpClientResponse clientResponse) {
 
-    private ClientResponse toRestEasyResponse(ClientConfiguration clientConfiguration,
-            HttpClientResponse clientResponse) {
-
-        InputStreamAdapter adapter = new InputStreamAdapter(clientResponse, 4 * 1024);
+        InputStreamAdapter adapter = new InputStreamAdapter(clientResponse, DEFAULT_RESPONSE_BUFFER_SIZE);
 
         class RestEasyClientResponse extends FinalizedClientResponse {
 
