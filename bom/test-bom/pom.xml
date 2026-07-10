@@ -61,10 +61,6 @@
                         <groupId>com.fasterxml.jackson.datatype</groupId>
                         <artifactId>*</artifactId>
                     </exclusion>
-                    <exclusion>
-                        <groupId>io.netty</groupId>
-                        <artifactId>*</artifactId>
-                    </exclusion>
                 </exclusions>
             </dependency>
 

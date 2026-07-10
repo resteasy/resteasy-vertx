@@ -11,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
+import java.util.concurrent.ThreadLocalRandom;
 
 import org.jboss.resteasy.client.jaxrs.engines.vertx.InputStreamAdapter;
 import org.junit.jupiter.api.AfterEach;
@@ -19,7 +20,6 @@ import org.junit.jupiter.api.Test;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.test.core.TestUtils;
 import io.vertx.test.fakestream.FakeStream;
 
 public class InputStreamAdapterTest {
@@ -58,7 +58,9 @@ public class InputStreamAdapterTest {
     public void testPauseStreamStream() throws Exception {
         FakeStream<Buffer> stream = new FakeStream<>();
         InputStreamAdapter adapter = new InputStreamAdapter(stream);
-        Buffer expected = TestUtils.randomBuffer(256 + 1);
+        final byte[] line = new byte[256 + 1];
+        ThreadLocalRandom.current().nextBytes(line);
+        Buffer expected = Buffer.buffer(line);
         stream.emit(expected.slice(0, 256));
         assertFalse(stream.isPaused());
         stream.emit(expected.slice(256, 257));
