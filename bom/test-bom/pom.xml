@@ -19,7 +19,7 @@
     <name>RESTEasy Vert.x: Test BOM</name>
 
     <properties>
-        <version.org.bouncycastle>1.83</version.org.bouncycastle>
+        <version.org.bouncycastle>1.84</version.org.bouncycastle>
         <version.org.eclipse.parsson>1.1.9</version.org.eclipse.parsson>
         <version.org.junit>5.13.4</version.org.junit>
     </properties>
