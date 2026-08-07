@@ -52,7 +52,7 @@ public class VertxContainer {
         if (vertx != null) {
             try {
                 vertx.stop();
-            } catch (Exception e) {
+            } catch (Exception ignored) {
 
             }
         }

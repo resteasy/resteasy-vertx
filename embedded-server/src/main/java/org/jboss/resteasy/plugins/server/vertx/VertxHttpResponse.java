@@ -25,10 +25,10 @@ import io.vertx.core.http.HttpServerResponse;
 public class VertxHttpResponse implements HttpResponse {
     private int status = 200;
     private OutputStream os;
-    private MultivaluedMap<String, Object> outputHeaders;
+    private final MultivaluedMap<String, Object> outputHeaders;
     final HttpServerResponse response;
     private boolean committed;
-    private ResteasyProviderFactory providerFactory;
+    private final ResteasyProviderFactory providerFactory;
     private final HttpMethod method;
     private Throwable vertxException;
     private boolean ended;

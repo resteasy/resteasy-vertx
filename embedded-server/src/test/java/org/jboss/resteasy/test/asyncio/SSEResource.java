@@ -4,6 +4,8 @@
  */
 package org.jboss.resteasy.test.asyncio;
 
+import java.io.IOException;
+
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
@@ -36,15 +38,15 @@ public class SSEResource {
             public void run() {
                 SseEventSink s = sink;
                 s.send(sse.newEvent("HELLO"));
-                s.close();
+                close(s);
                 isClosed = s.isClosed();
                 if (!isClosed)
                     return;
-                s.close();
+                close(s);
                 isClosed = s.isClosed();
                 if (!isClosed)
                     return;
-                s.close();
+                close(s);
                 isClosed = s.isClosed();
                 if (!isClosed)
                     return;
@@ -60,6 +62,13 @@ public class SSEResource {
             }
         });
         t.start();
+    }
+
+    private static void close(SseEventSink sink) {
+        try {
+            sink.close();
+        } catch (IOException ignored) {
+        }
     }
 
     @GET

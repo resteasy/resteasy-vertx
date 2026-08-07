@@ -50,7 +50,8 @@ Issues are kept in https://github.com/resteasy/resteasy-vertx/issues[GitHub Issu
 
 == Build
 
-Currently, RESTEasy Vert.x requires JDK 17+ to compile, but compiles to Java 11 bytecode.
+Currently, RESTEasy Vert.x requires JDK 17+ to compile and produces Java 17 bytecode. It is built and tested on JDK
+17, 21, 25 and 26 (see https://github.com/resteasy/resteasy-vertx/actions/workflows/main-build.yml[the CI workflow]).
 
 If you want to build the project without running the tests, you need to pull down a clone of the RESTEasy repository and
 run:

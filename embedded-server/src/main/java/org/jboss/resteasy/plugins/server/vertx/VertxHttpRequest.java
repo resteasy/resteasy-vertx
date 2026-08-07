@@ -56,10 +56,10 @@ public class VertxHttpRequest extends BaseHttpRequest {
     protected Map<String, Object> attributes = new HashMap<String, Object>();
     protected VertxHttpResponse response;
     private final boolean is100ContinueExpected;
-    private VertxExecutionContext executionContext;
+    private final VertxExecutionContext executionContext;
     private final Context context;
     private volatile boolean flushed;
-    private HttpServerRequest request;
+    private final HttpServerRequest request;
 
     public VertxHttpRequest(final Context context, final HttpServerRequest request, final ResteasyUriInfo uri,
             final SynchronousDispatcher dispatcher, final VertxHttpResponse response, final boolean is100ContinueExpected) {
@@ -223,7 +223,7 @@ public class VertxHttpRequest extends BaseHttpRequest {
         class VertxHttpAsyncResponse extends AbstractAsynchronousResponse {
             private final Object responseLock = new Object();
             private long timerID = -1;
-            private VertxHttpResponse vertxResponse;
+            private final VertxHttpResponse vertxResponse;
 
             VertxHttpAsyncResponse(final SynchronousDispatcher dispatcher, final VertxHttpRequest request,
                     final VertxHttpResponse response) {
@@ -398,7 +398,7 @@ public class VertxHttpRequest extends BaseHttpRequest {
                 }
                 CompletableFuture<Void> ret = new CompletableFuture<>();
                 this.request.context.executeBlocking(() -> {
-                    try (CloseableContext newContext = ResteasyContext.addCloseableContextDataLevel(context)) {
+                    try (CloseableContext ignored = ResteasyContext.addCloseableContextDataLevel(context)) {
                         f.run();
                         return null;
                     } catch (RuntimeException e) {

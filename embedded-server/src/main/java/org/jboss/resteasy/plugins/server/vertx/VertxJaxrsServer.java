@@ -48,7 +48,7 @@ public class VertxJaxrsServer implements EmbeddedJaxrsServer<VertxJaxrsServer> {
     protected String root = "";
     protected SecurityDomain domain;
     private String deploymentID;
-    private EmbeddedServerHelper serverHelper = new EmbeddedServerHelper();
+    private final EmbeddedServerHelper serverHelper = new EmbeddedServerHelper();
     // default no idle timeout.
 
     public VertxJaxrsServer() {
