@@ -44,6 +44,47 @@ Then you can use either the embedded server or client dependencies.
 </dependencies>
 ----
 
+=== Quick Start
+
+Start an embedded server using the standard Jakarta REST `SeBootstrap` API:
+
+[source,java]
+----
+@ApplicationPath("/api")
+public class MyApplication extends Application {
+    @Override
+    public Set<Class<?>> getClasses() {
+        return Set.of(GreetingResource.class);
+    }
+}
+
+SeBootstrap.Configuration config = SeBootstrap.Configuration.builder()
+    .host("localhost")
+    .port(8080)
+    .build();
+
+SeBootstrap.Instance instance = SeBootstrap.start(MyApplication.class, config)
+    .toCompletableFuture()
+    .join();
+
+URI uri = instance.configuration().baseUri();
+// Server running at http://localhost:8080/api
+----
+
+Create a client:
+
+[source,java]
+----
+Client client = ClientBuilder.newClient();
+String result = client.target("http://localhost:8080/api/greeting")
+    .request(MediaType.TEXT_PLAIN)
+    .get(String.class);
+client.close();
+----
+
+The Vert.x client engine is automatically discovered via `ServiceLoader`. Both client and server share a single
+managed `Vertx` instance via `VertxManager`.
+
 == Issues
 
 Issues are kept in https://github.com/resteasy/resteasy-vertx/issues[GitHub Issues].
