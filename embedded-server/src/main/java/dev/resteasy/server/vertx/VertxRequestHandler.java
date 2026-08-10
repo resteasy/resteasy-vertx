@@ -176,9 +176,12 @@ public class VertxRequestHandler implements Handler<HttpServerRequest> {
             dispatcher.invoke(vertxReq, vertxResp);
 
         } finally {
-            ResteasyContext.clearContextData();
-            if (defaultInstance instanceof ThreadLocalResteasyProviderFactory) {
-                ThreadLocalResteasyProviderFactory.pop();
+            try {
+                ResteasyContext.clearContextData();
+            } finally {
+                if (defaultInstance instanceof ThreadLocalResteasyProviderFactory) {
+                    ThreadLocalResteasyProviderFactory.pop();
+                }
             }
         }
     }
@@ -201,7 +204,11 @@ public class VertxRequestHandler implements Handler<HttpServerRequest> {
                 if ("basic".equals(type)) {
                     String cookie = auth.substring(6);
                     cookie = new String(Base64.getDecoder().decode(cookie.getBytes()));
-                    String[] split = cookie.split(":");
+                    String[] split = cookie.split(":", 2);
+                    if (split.length < 2) {
+                        response.sendError(HttpResponseCodes.SC_UNAUTHORIZED);
+                        return null;
+                    }
                     Principal user = null;
                     try {
                         user = securityDomain.authenticate(split[0], split[1]);
@@ -216,6 +223,7 @@ public class VertxRequestHandler implements Handler<HttpServerRequest> {
                 }
             }
         }
+        response.sendError(HttpResponseCodes.SC_UNAUTHORIZED);
         return null;
     }
 }

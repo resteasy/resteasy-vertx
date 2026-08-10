@@ -11,7 +11,6 @@ import org.jboss.resteasy.client.jaxrs.api.ClientBuilderConfiguration;
 import org.jboss.resteasy.client.jaxrs.engine.ClientHttpEngineFactory;
 import org.jboss.resteasy.client.jaxrs.engines.AsyncClientHttpEngine;
 
-import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.net.ProxyOptions;
 import io.vertx.core.net.ProxyType;
@@ -22,8 +21,6 @@ import io.vertx.core.net.ProxyType;
 public class VertxClientHttpEngineFactory implements ClientHttpEngineFactory {
     @Override
     public AsyncClientHttpEngine asyncHttpClientEngine(final ClientBuilderConfiguration configuration) {
-        final Vertx vertx = Vertx.vertx();
-
         final HttpClientOptions options = new HttpClientOptions();
 
         final long connectionTimeout = configuration.connectionTimeout(TimeUnit.MILLISECONDS);
@@ -50,6 +47,6 @@ public class VertxClientHttpEngineFactory implements ClientHttpEngineFactory {
             options.setReadIdleTimeout(Math.toIntExact(readTimeout));
         }
 
-        return new VertxClientHttpEngine(vertx, options, configuration);
+        return new VertxClientHttpEngine(options, configuration);
     }
 }

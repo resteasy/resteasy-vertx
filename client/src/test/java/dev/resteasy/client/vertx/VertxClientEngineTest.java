@@ -19,7 +19,6 @@ import java.time.Duration;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
@@ -54,6 +53,8 @@ import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 
+import dev.resteasy.vertx.VertxManager;
+
 public class VertxClientEngineTest {
     Vertx vertx;
     HttpServer server;
@@ -62,19 +63,17 @@ public class VertxClientEngineTest {
 
     @BeforeEach
     public void before() {
-        vertx = Vertx.vertx();
+        vertx = VertxManager.instance().acquire();
         server = vertx.createHttpServer();
         executorService = Executors.newSingleThreadScheduledExecutor();
     }
 
     @AfterEach
-    public void stop() throws Exception {
+    public void stop() {
         if (client != null) {
             client.close();
         }
-        CountDownLatch latch = new CountDownLatch(1);
-        vertx.close().onComplete(ar -> latch.countDown());
-        latch.await(2, TimeUnit.MINUTES);
+        VertxManager.instance().close();
         executorService.shutdownNow();
     }
 
@@ -93,7 +92,7 @@ public class VertxClientEngineTest {
         if (client == null) {
             client = ClientBuilder.newBuilder()
                     .scheduledExecutorService(executorService)
-                    .register(new VertxClientHttpEngine(vertx))
+                    .register(new VertxClientHttpEngine())
                     .build();
         }
         return client;
@@ -101,11 +100,12 @@ public class VertxClientEngineTest {
 
     @Test
     public void checkClientEngine() {
-        final Client client = ClientBuilder.newClient();
-        Assertions.assertInstanceOf(ResteasyClient.class, client,
-                () -> String.format("Expected the client to be an instance of %s", ResteasyClient.class));
-        final ResteasyClient resteasyClient = (ResteasyClient) client;
-        Assertions.assertInstanceOf(VertxClientHttpEngine.class, resteasyClient.httpEngine());
+        try (Client client = ClientBuilder.newClient()) {
+            Assertions.assertInstanceOf(ResteasyClient.class, client,
+                    () -> String.format("Expected the client to be an instance of %s", ResteasyClient.class));
+            final ResteasyClient resteasyClient = (ResteasyClient) client;
+            Assertions.assertInstanceOf(VertxClientHttpEngine.class, resteasyClient.httpEngine());
+        }
     }
 
     @Test

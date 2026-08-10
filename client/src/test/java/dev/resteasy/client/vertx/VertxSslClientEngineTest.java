@@ -109,7 +109,7 @@ public class VertxSslClientEngineTest {
                 .setSsl(true);
         return ClientBuilder.newBuilder()
                 .scheduledExecutorService(executorService)
-                .register(new VertxClientHttpEngine(vertx, options))
+                .register(new VertxClientHttpEngine(options))
                 .build();
     }
 }

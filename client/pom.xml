@@ -41,6 +41,10 @@
         </dependencies>
     </dependencyManagement>
     <dependencies>
+        <dependency>
+            <groupId>dev.resteasy.vertx</groupId>
+            <artifactId>resteasy-vertx-api</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>org.jboss.resteasy</groupId>

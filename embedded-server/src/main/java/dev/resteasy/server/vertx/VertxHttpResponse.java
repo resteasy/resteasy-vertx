@@ -235,7 +235,6 @@ public class VertxHttpResponse implements HttpResponse {
     public void finish() throws IOException {
         if (ended)
             return;
-        ended = true;
         checkException();
         if (os != null) {
             os.flush();
@@ -245,6 +244,7 @@ public class VertxHttpResponse implements HttpResponse {
         } else {
             prepareEmptyResponse();
         }
+        ended = true;
         response.end();
     }
 

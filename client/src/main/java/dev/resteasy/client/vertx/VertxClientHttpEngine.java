@@ -45,6 +45,8 @@ import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.RequestOptions;
 
+import dev.resteasy.vertx.VertxManager;
+
 /**
  * A RESTEasy HTTP client engine implementation backed by Vert.x HTTP client.
  * <p>
@@ -76,66 +78,35 @@ public class VertxClientHttpEngine implements AsyncClientHttpEngine {
      */
     private static final int DEFAULT_RESPONSE_BUFFER_SIZE = 4 * 1024;
 
-    private final Vertx vertx;
     private final HttpClient httpClient;
     private final ClientBuilderConfiguration configuration;
 
     /**
-     * Creates a new engine with a default Vert.x instance and HTTP client options.
-     * The created Vert.x instance will be closed when this engine is closed.
+     * Creates a new engine.
      */
     public VertxClientHttpEngine() {
-        this.vertx = Vertx.vertx();
-        this.httpClient = vertx.createHttpClient();
+        this.httpClient = createClient(null);
         this.configuration = null;
     }
 
     /**
-     * Creates a new engine with the specified Vert.x instance and HTTP client options.
+     * Creates a new engine with the specified HTTP client options.
      *
-     * @param vertx   the Vert.x instance to use
      * @param options the HTTP client options
      */
-    public VertxClientHttpEngine(final Vertx vertx, final HttpClientOptions options) {
-        this(vertx, options, null);
-    }
-
-    /**
-     * Creates a new engine with the specified Vert.x instance and default HTTP client options.
-     *
-     * @param vertx the Vert.x instance to use
-     */
-    public VertxClientHttpEngine(final Vertx vertx) {
-        this(vertx, new HttpClientOptions());
-    }
-
-    /**
-     * Creates a new engine with an existing HTTP client.
-     * <p>
-     * When using this constructor, the caller is responsible for managing the lifecycle
-     * of the HTTP client. Calling {@link #close()} will close the client but not any
-     * associated Vert.x instance.
-     * </p>
-     *
-     * @param client the HTTP client to use
-     */
-    public VertxClientHttpEngine(final HttpClient client) {
-        this.vertx = null;
-        this.httpClient = client;
+    public VertxClientHttpEngine(final HttpClientOptions options) {
+        this.httpClient = createClient(options);
         this.configuration = null;
     }
 
     /**
-     * Creates a new engine with the specified Vert.x instance, HTTP client options, and configuration.
+     * Creates a new engine with the specified HTTP client options and configuration.
      *
-     * @param vertx         the Vert.x instance to use
      * @param options       the HTTP client options
      * @param configuration the client builder configuration, may be {@code null}
      */
-    public VertxClientHttpEngine(final Vertx vertx, final HttpClientOptions options,
-            final ClientBuilderConfiguration configuration) {
-        this.vertx = vertx;
-        this.httpClient = vertx.createHttpClient(options);
+    public VertxClientHttpEngine(final HttpClientOptions options, final ClientBuilderConfiguration configuration) {
+        this.httpClient = createClient(options);
         this.configuration = configuration;
     }
 
@@ -266,10 +237,7 @@ public class VertxClientHttpEngine implements AsyncClientHttpEngine {
             // 2. Handle the Request Body (if present)
             if (request.getEntity() != null) {
                 final ExecutorService executor = resolveExecutor(null);
-                // If the engine was created with just an HttpClient, vertx might be null.
-                // Fall back to Vertx.currentContext() if necessary.
-                final io.vertx.core.Context context = this.vertx != null ? this.vertx.getOrCreateContext()
-                        : Vertx.currentContext();
+                final io.vertx.core.Context context = Vertx.currentContext();
 
                 // Push the blocking JAX-RS writer to a worker thread
                 executor.execute(() -> {
@@ -343,10 +311,10 @@ public class VertxClientHttpEngine implements AsyncClientHttpEngine {
 
     @Override
     public void close() {
-        if (vertx != null) {
-            vertx.close();
-        } else {
+        try {
             httpClient.close();
+        } finally {
+            VertxManager.instance().close();
         }
     }
 
@@ -428,5 +396,16 @@ public class VertxClientHttpEngine implements AsyncClientHttpEngine {
         clientResponse.headers().forEach(header -> restEasyHeaders.add(header.getKey(), header.getValue()));
         restEasyClientResponse.setHeaders(restEasyHeaders);
         return restEasyClientResponse;
+    }
+
+    private static HttpClient createClient(final HttpClientOptions options) {
+        final Vertx vertx = VertxManager.instance().acquire();
+        try {
+            final HttpClientOptions httpOptions = options == null ? new HttpClientOptions() : options;
+            return vertx.createHttpClient(httpOptions);
+        } catch (Throwable t) {
+            VertxManager.instance().close();
+            throw t;
+        }
     }
 }
