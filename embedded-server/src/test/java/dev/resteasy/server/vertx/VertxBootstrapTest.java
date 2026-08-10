@@ -14,6 +14,6 @@ import org.jboss.resteasy.plugins.server.embedded.EmbeddedServer;
 public class VertxBootstrapTest extends SeBootstrapTest {
     @Override
     protected Class<? extends EmbeddedServer> getEmbeddedServerClass() {
-        return VertxJaxrsServer.class;
+        return VertxEmbeddedServer.class;
     }
 }

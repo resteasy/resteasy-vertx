@@ -19,6 +19,9 @@ updates:
         update-types: ['version-update:semver-major', 'version-update:semver-minor']
       - dependency-name: 'org.junit*'
         update-types: ['version-update:semver-major', 'version-update:semver-minor']
+        # We need the 3.1.x version for Java 11 support, once we drop it we can upgrade
+      - dependency-name: 'org.jboss.logmanager:jboss-logmanager'
+        update-types: ['version-update:semver-major', 'version-update:semver-minor']
     open-pull-requests-limit: 10
   - package-ecosystem: "github-actions"
     # Workflow files stored in the

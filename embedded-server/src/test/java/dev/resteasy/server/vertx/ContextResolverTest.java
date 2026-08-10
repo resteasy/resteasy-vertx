@@ -4,12 +4,8 @@
  */
 package dev.resteasy.server.vertx;
 
-import static org.jboss.resteasy.test.TestPortProvider.generateURL;
-
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
-import jakarta.ws.rs.client.Client;
-import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.Application;
 import jakarta.ws.rs.core.Context;
@@ -22,10 +18,12 @@ import jakarta.ws.rs.ext.ContextResolver;
 import jakarta.ws.rs.ext.Provider;
 import jakarta.ws.rs.ext.Providers;
 
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+
+import dev.resteasy.junit.extension.annotations.RequestPath;
+import dev.resteasy.junit.extension.annotations.RestBootstrap;
+import dev.resteasy.junit.extension.annotations.RestResource;
 
 /**
  * Test that dynamic feature doesn't add to all resource methods
@@ -33,6 +31,7 @@ import org.junit.jupiter.api.Test;
  * @author <a href="mailto:bill@burkecentral.com">Bill Burke</a>
  * @version $Revision: 1 $
  */
+@RestBootstrap({ ContextResolverTest.HolderResolver.class, ContextResolverTest.Resource.class })
 public class ContextResolverTest {
     public static class HolderClass {
         public static final String OK = "11111";
@@ -136,31 +135,11 @@ public class ContextResolverTest {
         }
     }
 
-    static Client client;
-
-    @BeforeAll
-    public static void setup() throws Exception {
-        VertxResteasyDeployment deployment = new VertxResteasyDeployment();
-        deployment.getActualProviderClasses().add(HolderResolver.class);
-        deployment.getActualResourceClasses().add(Resource.class);
-        VertxContainer.start(deployment);
-        client = ClientBuilder.newClient();
-    }
-
-    @AfterAll
-    public static void end() throws Exception {
-        try {
-            client.close();
-        } catch (Exception e) {
-
-        }
-        VertxContainer.stop();
-    }
-
     @Test
-    public void testBasic() throws Exception {
-        WebTarget target = client.target(generateURL("/resource/contextresolver"));
+    public void testBasic(@RestResource @RequestPath("/resource/contextresolver") final WebTarget target) throws Exception {
         String val = target.request().get(String.class);
-        Assertions.assertEquals("11110", val);
+        // Minor note on why this changed from 11110 to 11111. Previously this test did not use an Application so the
+        // Application was null, that is no longer the case.
+        Assertions.assertEquals("11111", val);
     }
 }

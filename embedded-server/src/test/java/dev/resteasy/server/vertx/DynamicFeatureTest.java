@@ -4,8 +4,6 @@
  */
 package dev.resteasy.server.vertx;
 
-import static org.jboss.resteasy.test.TestPortProvider.generateURL;
-
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -17,8 +15,6 @@ import java.lang.annotation.Annotation;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.WebApplicationException;
-import jakarta.ws.rs.client.Client;
-import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.container.ContainerRequestContext;
@@ -34,10 +30,12 @@ import jakarta.ws.rs.ext.ReaderInterceptorContext;
 import jakarta.ws.rs.ext.WriterInterceptor;
 import jakarta.ws.rs.ext.WriterInterceptorContext;
 
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+
+import dev.resteasy.junit.extension.annotations.RequestPath;
+import dev.resteasy.junit.extension.annotations.RestBootstrap;
+import dev.resteasy.junit.extension.annotations.RestResource;
 
 /**
  * Test that dynamic feature doesn't add to all resource methods
@@ -45,6 +43,7 @@ import org.junit.jupiter.api.Test;
  * @author <a href="mailto:bill@burkecentral.com">Bill Burke</a>
  * @version $Revision: 1 $
  */
+@RestBootstrap({ DynamicFeatureTest.AddDynamicFeature.class, DynamicFeatureTest.Resource.class })
 public class DynamicFeatureTest {
 
     public abstract static class AbstractAddFilter implements ContainerResponseFilter {
@@ -171,30 +170,8 @@ public class DynamicFeatureTest {
 
     }
 
-    static Client client;
-
-    @BeforeAll
-    public static void setup() throws Exception {
-        VertxResteasyDeployment deployment = new VertxResteasyDeployment();
-        deployment.getActualProviderClasses().add(AddDynamicFeature.class);
-        deployment.getActualResourceClasses().add(Resource.class);
-        VertxContainer.start(deployment);
-        client = ClientBuilder.newClient();
-    }
-
-    @AfterAll
-    public static void end() throws Exception {
-        try {
-            client.close();
-        } catch (Exception e) {
-
-        }
-        VertxContainer.stop();
-    }
-
     @Test
-    public void testBasic() throws Exception {
-        WebTarget target = client.target(generateURL("/resource/nobinding"));
+    public void testBasic(@RestResource @RequestPath("/resource/nobinding") final WebTarget target) throws Exception {
         String val = target.request().post(Entity.text("0"), String.class);
         Assertions.assertEquals("0", val);
 

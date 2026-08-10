@@ -4,10 +4,9 @@
  */
 package dev.resteasy.server.vertx.asyncio;
 
-import static org.jboss.resteasy.test.TestPortProvider.generateURL;
-
 import java.io.IOException;
 import java.lang.annotation.Annotation;
+import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -22,13 +21,13 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMultipart;
 import jakarta.ws.rs.InternalServerErrorException;
 import jakarta.ws.rs.client.Client;
-import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.Form;
 import jakarta.ws.rs.core.GenericType;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.UriBuilder;
 import jakarta.ws.rs.sse.InboundSseEvent;
 
 import org.jboss.resteasy.annotations.providers.multipart.MultipartForm;
@@ -38,41 +37,27 @@ import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
 import org.jboss.resteasy.plugins.providers.multipart.MultipartInput;
 import org.jboss.resteasy.plugins.providers.multipart.MultipartRelatedInput;
 import org.jboss.resteasy.plugins.providers.sse.SseEventInputImpl;
-import org.jboss.resteasy.spi.Registry;
-import org.jboss.resteasy.spi.ResteasyDeployment;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import dev.resteasy.server.vertx.VertxContainer;
+import dev.resteasy.junit.extension.annotations.RestBootstrap;
+import dev.resteasy.junit.extension.annotations.RestResource;
 
+@RestBootstrap({
+        BlockingWriter.class,
+        BlockingThrowingWriter.class,
+        AsyncWriter.class,
+        AsyncThrowingWriter.class,
+        InterceptorFeature.class,
+        AsyncIOResource.class
+})
 public class AsyncIOTest {
 
-    static Client client;
+    @RestResource
+    private Client client;
 
-    @BeforeAll
-    public static void setup() throws Exception {
-        ResteasyDeployment deployment = VertxContainer.start();
-        deployment.getProviderFactory().register(BlockingWriter.class);
-        deployment.getProviderFactory().register(BlockingThrowingWriter.class);
-        deployment.getProviderFactory().register(AsyncWriter.class);
-        deployment.getProviderFactory().register(AsyncThrowingWriter.class);
-        deployment.getProviderFactory().register(InterceptorFeature.class);
-        Registry registry = deployment.getRegistry();
-        registry.addPerRequestResource(AsyncIOResource.class);
-        client = ClientBuilder.newClient();
-    }
-
-    @AfterAll
-    public static void end() throws Exception {
-        try {
-            client.close();
-        } catch (Exception e) {
-
-        }
-        VertxContainer.stop();
-    }
+    @RestResource
+    private URI baseUri;
 
     @Test
     public void testAsyncIo() throws Exception {
@@ -307,5 +292,9 @@ public class AsyncIOTest {
         Assertions.assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
         Assertions.assertEquals("blocking", response.getHeaderString("X-Writer"));
         tester.accept(response.readEntity(klass, annotations));
+    }
+
+    private URI generateURL(final String path) {
+        return UriBuilder.fromUri(baseUri).path(path).build();
     }
 }

@@ -6,10 +6,10 @@ package dev.resteasy.server.vertx;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
@@ -29,6 +29,7 @@ import org.jboss.resteasy.core.SynchronousDispatcher;
 import org.jboss.resteasy.plugins.server.BaseHttpRequest;
 import org.jboss.resteasy.specimpl.ResteasyHttpHeaders;
 import org.jboss.resteasy.specimpl.ResteasyUriInfo;
+import org.jboss.resteasy.spi.HttpRequest;
 import org.jboss.resteasy.spi.NotImplementedYetException;
 import org.jboss.resteasy.spi.ResteasyAsynchronousContext;
 import org.jboss.resteasy.spi.ResteasyAsynchronousResponse;
@@ -36,20 +37,28 @@ import org.jboss.resteasy.spi.RunnableWithException;
 
 import io.vertx.core.Context;
 import io.vertx.core.http.HttpServerRequest;
+import io.vertx.core.net.SocketAddress;
 
-import dev.resteasy.server.vertx.i18n.Messages;
+import dev.resteasy.server.vertx._private.VertxLogger;
 
 /**
- * Abstraction for an inbound http request on the server, or a response from a server to a client
+ * Vert.x adapter that bridges {@link HttpServerRequest} to RESTEasy's {@link HttpRequest} SPI.
  * <p>
- * We have this abstraction so that we can reuse marshalling objects in a client framework and serverside framework
+ * This adapter handles:
+ * </p>
+ * <ul>
+ * <li>Request headers and URI conversion to RESTEasy format</li>
+ * <li>Request body input stream from Vert.x buffers</li>
+ * <li>Request attributes storage</li>
+ * <li>JAX-RS async context (via nested {@link VertxExecutionContext})</li>
+ * <li>Remote address information</li>
+ * </ul>
  *
  * @author <a href="mailto:bill@burkecentral.com">Bill Burke</a>
  * @author Norman Maurer
  * @author Kristoffer Sjogren
- * @version $Revision: 1 $
  */
-public class VertxHttpRequest extends BaseHttpRequest {
+class VertxHttpRequest extends BaseHttpRequest {
     protected ResteasyHttpHeaders httpHeaders;
     protected SynchronousDispatcher dispatcher;
     protected String httpMethod;
@@ -59,10 +68,19 @@ public class VertxHttpRequest extends BaseHttpRequest {
     private final boolean is100ContinueExpected;
     private VertxExecutionContext executionContext;
     private final Context context;
-    private volatile boolean flushed;
     private HttpServerRequest request;
 
-    public VertxHttpRequest(final Context context, final HttpServerRequest request, final ResteasyUriInfo uri,
+    /**
+     * Creates a new Vert.x HTTP request adapter.
+     *
+     * @param context               the Vert.x context for this request
+     * @param request               the Vert.x HTTP server request
+     * @param uri                   the parsed URI information
+     * @param dispatcher            the RESTEasy synchronous dispatcher
+     * @param response              the associated response adapter
+     * @param is100ContinueExpected whether 100-Continue is expected
+     */
+    VertxHttpRequest(final Context context, final HttpServerRequest request, final ResteasyUriInfo uri,
             final SynchronousDispatcher dispatcher, final VertxHttpResponse response, final boolean is100ContinueExpected) {
         super(uri);
         this.context = context;
@@ -87,29 +105,12 @@ public class VertxHttpRequest extends BaseHttpRequest {
 
     @Override
     public Enumeration<String> getAttributeNames() {
-        Enumeration<String> en = new Enumeration<String>() {
-            private Iterator<String> it = attributes.keySet().iterator();
-
-            @Override
-            public boolean hasMoreElements() {
-                return it.hasNext();
-            }
-
-            @Override
-            public String nextElement() {
-                return it.next();
-            }
-        };
-        return en;
+        return Collections.enumeration(attributes.keySet());
     }
 
     @Override
     public ResteasyAsynchronousContext getAsyncContext() {
         return executionContext;
-    }
-
-    public boolean isFlushed() {
-        return flushed;
     }
 
     @Override
@@ -147,16 +148,9 @@ public class VertxHttpRequest extends BaseHttpRequest {
         return httpMethod;
     }
 
-    public VertxHttpResponse getResponse() {
-        return response;
-    }
-
-    public boolean is100ContinueExpected() {
-        return is100ContinueExpected;
-    }
-
     @Override
     public void forward(String path) {
+        // TODO (jrp) can we implement this?
         throw new NotImplementedYetException();
     }
 
@@ -165,6 +159,17 @@ public class VertxHttpRequest extends BaseHttpRequest {
         return false;
     }
 
+    /**
+     * Vert.x implementation of RESTEasy's async execution context.
+     * <p>
+     * This handles JAX-RS {@code @Suspended} async responses and manages the lifecycle
+     * of async request processing on the Vert.x event loop.
+     * </p>
+     * <p>
+     * When a JAX-RS resource method is suspended, this context manages resumption
+     * either on the event loop or via blocking execution on a worker thread.
+     * </p>
+     */
     class VertxExecutionContext extends AbstractExecutionContext {
         protected final VertxHttpRequest request;
         protected final VertxHttpResponse response;
@@ -204,7 +209,7 @@ public class VertxHttpRequest extends BaseHttpRequest {
         @Override
         public ResteasyAsynchronousResponse suspend(long time, TimeUnit unit) throws IllegalStateException {
             if (wasSuspended) {
-                throw new IllegalStateException(Messages.MESSAGES.alreadySuspended());
+                throw VertxLogger.LOGGER.alreadySuspended();
             }
             wasSuspended = true;
             return asyncResponse;
@@ -217,7 +222,19 @@ public class VertxHttpRequest extends BaseHttpRequest {
         }
 
         /**
-         * Vertx implementation of {@link AsyncResponse}.
+         * Vert.x implementation of JAX-RS {@link AsyncResponse}.
+         * <p>
+         * Manages the async response lifecycle including:
+         * </p>
+         * <ul>
+         * <li>Resume with entity or exception</li>
+         * <li>Cancellation with retry-after headers</li>
+         * <li>Timeout handling via Vert.x timers</li>
+         * </ul>
+         * <p>
+         * <b>Thread-safety:</b> All methods are synchronized on {@code responseLock} to ensure
+         * safe concurrent access from JAX-RS async operations and Vert.x event loop callbacks.
+         * </p>
          *
          * @author Kristoffer Sjogren
          */
@@ -305,7 +322,6 @@ public class VertxHttpRequest extends BaseHttpRequest {
             }
 
             protected synchronized void vertxFlush() {
-                flushed = true;
                 try {
                     vertxResponse.finish();
                 } catch (IOException e) {
@@ -425,11 +441,13 @@ public class VertxHttpRequest extends BaseHttpRequest {
 
     @Override
     public String getRemoteHost() {
-        return request.remoteAddress().host();
+        final SocketAddress remoteAddress = request.remoteAddress();
+        return remoteAddress != null ? remoteAddress.host() : null;
     }
 
     @Override
     public String getRemoteAddress() {
-        return request.remoteAddress().host();
+        final SocketAddress remoteAddress = request.remoteAddress();
+        return remoteAddress != null ? remoteAddress.host() : null;
     }
 }

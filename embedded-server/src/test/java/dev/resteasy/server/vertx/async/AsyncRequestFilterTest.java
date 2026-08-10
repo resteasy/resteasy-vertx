@@ -4,49 +4,28 @@
  */
 package dev.resteasy.server.vertx.async;
 
-import static org.jboss.resteasy.test.TestPortProvider.generateURL;
-
-import jakarta.ws.rs.client.Client;
-import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 
-import org.jboss.logging.Logger;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import dev.resteasy.server.vertx.VertxContainer;
-import dev.resteasy.server.vertx.VertxResteasyDeployment;
+import dev.resteasy.junit.extension.annotations.RequestPath;
+import dev.resteasy.junit.extension.annotations.RestBootstrap;
+import dev.resteasy.junit.extension.annotations.RestResource;
 
+@RestBootstrap({
+        AsyncRequestFilterResource.class,
+        AsyncRequestFilter1.class, AsyncRequestFilter2.class, AsyncRequestFilter3.class,
+        AsyncPreMatchRequestFilter1.class, AsyncPreMatchRequestFilter2.class, AsyncPreMatchRequestFilter3.class,
+        AsyncResponseFilter1.class, AsyncResponseFilter2.class, AsyncResponseFilter3.class,
+        AsyncFilterException.class, AsyncFilterExceptionMapper.class
+})
 public class AsyncRequestFilterTest {
-    protected static final Logger log = Logger.getLogger(AsyncRequestFilterTest.class.getName());
 
-    static void register(VertxResteasyDeployment deployment, Class... list) {
-        for (Class clazz : list) {
-            deployment.getProviderFactory().registerProvider(clazz);
-        }
-
-    }
-
-    @BeforeAll
-    public static void setup() throws Exception {
-        VertxResteasyDeployment deployment = VertxContainer.start();
-        deployment.getRegistry().addPerRequestResource(AsyncRequestFilterResource.class);
-        register(deployment,
-                AsyncRequestFilter1.class, AsyncRequestFilter2.class, AsyncRequestFilter3.class,
-                AsyncPreMatchRequestFilter1.class, AsyncPreMatchRequestFilter2.class, AsyncPreMatchRequestFilter3.class,
-                AsyncResponseFilter1.class, AsyncResponseFilter2.class, AsyncResponseFilter3.class,
-                AsyncFilterException.class, AsyncFilterExceptionMapper.class);
-
-    }
-
-    @AfterAll
-    public static void end() throws Exception {
-        VertxContainer.stop();
-    }
+    @RestResource
+    private WebTarget base;
 
     /**
      * @tpTestDetails Interceptors work
@@ -54,11 +33,6 @@ public class AsyncRequestFilterTest {
      */
     @Test
     public void testRequestFilters() throws Exception {
-        Client client = ClientBuilder.newClient();
-
-        // Create book.
-        WebTarget base = client.target(generateURL("/"));
-
         // all sync
 
         Response response = base.request()
@@ -176,8 +150,6 @@ public class AsyncRequestFilterTest {
                 .get();
         Assertions.assertEquals(200, response.getStatus());
         Assertions.assertEquals("Filter1", response.readEntity(String.class));
-
-        client.close();
     }
 
     /**
@@ -186,10 +158,6 @@ public class AsyncRequestFilterTest {
      */
     @Test
     public void testPreMatchRequestFilters() throws Exception {
-        Client client = ClientBuilder.newClient();
-
-        // Create book.
-        WebTarget base = client.target(generateURL("/"));
 
         // all sync
 
@@ -291,8 +259,6 @@ public class AsyncRequestFilterTest {
                 .get();
         Assertions.assertEquals(200, response.getStatus());
         Assertions.assertEquals("PreMatchFilter2", response.readEntity(String.class));
-
-        client.close();
     }
 
     /**
@@ -301,10 +267,6 @@ public class AsyncRequestFilterTest {
      */
     @Test
     public void testResponseFilters() throws Exception {
-        Client client = ClientBuilder.newClient();
-
-        // Create book.
-        WebTarget base = client.target(generateURL("/"));
 
         // all sync
 
@@ -423,8 +385,6 @@ public class AsyncRequestFilterTest {
                 .get();
         Assertions.assertEquals(200, response.getStatus());
         Assertions.assertEquals("ResponseFilter1", response.readEntity(String.class));
-
-        client.close();
     }
 
     /**
@@ -433,10 +393,6 @@ public class AsyncRequestFilterTest {
      */
     @Test
     public void testResponseFilters2() throws Exception {
-        Client client = ClientBuilder.newClient();
-
-        // Create book.
-        WebTarget base = client.target(generateURL("/async"));
 
         // async way later
         Response response = base.request()
@@ -446,30 +402,30 @@ public class AsyncRequestFilterTest {
                 .get();
         Assertions.assertEquals(200, response.getStatus());
         Assertions.assertEquals("ResponseFilter3", response.readEntity(String.class));
-
-        client.close();
     }
 
-    /**
-     * @tpTestDetails Async filters work with resume(Throwable) wrt filters/callbacks/complete
-     * @tpSince RESTEasy 4.0.0
-     */
     @Test
-    public void testResponseFiltersThrow() throws Exception {
-        Client client = ClientBuilder.newClient();
-
-        testResponseFilterThrow(client, "/callback-async", false);
-        testResponseFilterThrow(client, "/callback", false);
-
-        testResponseFilterThrow(client, "/callback-async", true);
-        testResponseFilterThrow(client, "/callback", true);
-
-        client.close();
+    void responseFiltersThrowCallbackAsync(@RestResource @RequestPath("callback-async") final WebTarget target) {
+        testResponseFilterThrow(target, false);
     }
 
-    private void testResponseFilterThrow(Client client, String target, boolean useExceptionMapper) {
-        WebTarget base = client.target(generateURL(target));
+    @Test
+    void responseFiltersThrowCallback(@RestResource @RequestPath("callback") final WebTarget target) {
+        testResponseFilterThrow(target, false);
+    }
 
+    @Test
+    void responseFiltersThrowCallbackAsyncExceptionManager(
+            @RestResource @RequestPath("callback-async") final WebTarget target) {
+        testResponseFilterThrow(target, true);
+    }
+
+    @Test
+    void responseFiltersThrowCallbackExceptionManager(@RestResource @RequestPath("callback") final WebTarget target) {
+        testResponseFilterThrow(target, true);
+    }
+
+    private void testResponseFilterThrow(final WebTarget base, final boolean useExceptionMapper) {
         // throw in response filter
         Response response = base.request()
                 .header("ResponseFilter1", "sync-pass")
@@ -533,12 +489,8 @@ public class AsyncRequestFilterTest {
      * @tpSince RESTEasy 4.0.0
      */
     @Test
-    public void testRequestFiltersGuessReturnType() throws Exception {
-        Client client = ClientBuilder.newClient();
-
-        // Create book.
-        WebTarget base = client.target(generateURL("/non-response"));
-
+    public void testRequestFiltersGuessReturnType(@RestResource @RequestPath("/non-response") final WebTarget base)
+            throws Exception {
         Response response = base.request()
                 .header("Filter1", "async-pass")
                 .header("Filter2", "sync-pass")
@@ -546,6 +498,5 @@ public class AsyncRequestFilterTest {
                 .get();
         Assertions.assertEquals(200, response.getStatus());
         Assertions.assertEquals("resource", response.readEntity(String.class));
-        client.close();
     }
 }

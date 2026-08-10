@@ -4,14 +4,11 @@
  */
 package dev.resteasy.server.vertx;
 
-import static org.jboss.resteasy.test.TestPortProvider.generateURL;
-import static org.jboss.resteasy.test.TestPortProvider.getHost;
-import static org.jboss.resteasy.test.TestPortProvider.getPort;
-
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.net.URI;
 import java.util.Locale;
 import java.util.regex.Pattern;
 
@@ -22,8 +19,6 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
-import jakarta.ws.rs.client.Client;
-import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.Context;
@@ -34,15 +29,18 @@ import jakarta.ws.rs.core.UriInfo;
 import org.jboss.resteasy.client.jaxrs.internal.ClientInvocation;
 import org.jboss.resteasy.spi.HttpRequest;
 import org.jboss.resteasy.util.StringContextReplacement;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+
+import dev.resteasy.junit.extension.annotations.RequestPath;
+import dev.resteasy.junit.extension.annotations.RestBootstrap;
+import dev.resteasy.junit.extension.annotations.RestResource;
 
 /**
  * @author <a href="mailto:bill@burkecentral.com">Bill Burke</a>
  * @version $Revision: 1 $
  */
+@RestBootstrap(VertxTest.Resource.class)
 public class VertxTest {
 
     @Path("/")
@@ -130,35 +128,14 @@ public class VertxTest {
         }
     }
 
-    static Client client;
-
-    @BeforeAll
-    public static void setup() throws Exception {
-        VertxContainer.start().getRegistry().addPerRequestResource(Resource.class);
-        client = ClientBuilder.newClient();
-    }
-
-    @AfterAll
-    public static void end() throws Exception {
-        try {
-            client.close();
-        } catch (Exception e) {
-
-        }
-        VertxContainer.stop();
-    }
-
     @Test
-    public void testBasic() throws Exception {
-        WebTarget target = client.target(generateURL("/test"));
+    public void testBasic(@RestResource @RequestPath("test") final WebTarget target) throws Exception {
         String val = target.request().get(String.class);
         Assertions.assertEquals("hello world", val);
     }
 
     @Test
-    public void testHeadContentLength() throws Exception {
-        Client client = ClientBuilder.newClient();
-        WebTarget target = client.target(generateURL("/test"));
+    public void testHeadContentLength(@RestResource @RequestPath("test") final WebTarget target) throws Exception {
         Response getResponse = target.request().buildGet().invoke();
         String val = ClientInvocation.extractResult(new GenericType<String>(String.class), getResponse, null);
         Assertions.assertEquals("hello world", val);
@@ -169,28 +146,21 @@ public class VertxTest {
     }
 
     @Test
-    public void testQuery() throws Exception {
-        WebTarget target = client.target(generateURL("/query"));
+    public void testQuery(@RestResource @RequestPath("query") final WebTarget target) throws Exception {
         String val = target.queryParam("param", "val").request().get(String.class);
         Assertions.assertEquals("val", val);
     }
 
     @Test
-    public void testEmpty() throws Exception {
-        WebTarget target = client.target(generateURL("/empty"));
-        Response response = target.request().get();
-        try {
+    public void testEmpty(@RestResource @RequestPath("empty") final WebTarget target) throws Exception {
+        try (Response response = target.request().get()) {
             Assertions.assertEquals(204, response.getStatus());
-        } finally {
-            response.close();
         }
     }
 
     @Test
-    public void testLarge() throws Exception {
-        WebTarget target = client.target(generateURL("/large"));
-        Response response = target.request().get();
-        try {
+    public void testLarge(@RestResource @RequestPath("large") final WebTarget target) throws Exception {
+        try (Response response = target.request().get()) {
             Assertions.assertEquals(200, response.getStatus());
             StringBuffer buf = new StringBuffer();
             for (int i = 0; i < 1000; i++) {
@@ -200,42 +170,33 @@ public class VertxTest {
             String have = response.readEntity(String.class);
             Assertions.assertEquals(expected, have);
 
-        } finally {
-            response.close();
         }
     }
 
     @Test
-    public void testUnhandledException() throws Exception {
-        WebTarget target = client.target(generateURL("/exception"));
-        Response resp = target.request().get();
-        try {
+    public void testUnhandledException(@RestResource @RequestPath("exception") final WebTarget target) throws Exception {
+        try (Response resp = target.request().get()) {
             Assertions.assertEquals(500, resp.getStatus());
-        } finally {
-            resp.close();
         }
     }
 
     @Test
-    public void testChannelContext() throws Exception {
-        WebTarget target = client.target(generateURL("/context"));
+    public void testChannelContext(@RestResource @RequestPath("context") final WebTarget target) throws Exception {
         String val = target.request().get(String.class);
         Assertions.assertEquals("pass", val);
     }
 
     @Test
-    public void testReplacement() throws Exception {
+    public void testReplacement(@RestResource @RequestPath("replace") final WebTarget target) throws Exception {
         // this test was put in to make sure that without servlet it still works.
-        WebTarget target = client.target(generateURL("/replace"));
         String val = target.request().post(Entity.text("${contextpath}"), String.class);
-        Assertions.assertEquals("", val);
+        Assertions.assertEquals("/", val);
     }
 
     @Test
-    public void testPost() {
-        WebTarget target = client.target(generateURL("/post"));
+    public void testPost(@RestResource @RequestPath("post") final WebTarget target) {
         String postBody = "hello world";
-        String result = (String) target.request().post(Entity.text(postBody), String.class);
+        String result = target.request().post(Entity.text(postBody), String.class);
         Assertions.assertEquals(postBody, result);
     }
 
@@ -259,13 +220,11 @@ public class VertxTest {
      * @throws Exception
      */
     @Test
-    public void testAbsoluteURI() throws Exception {
-        String uri = generateURL("/test/absolute");
-
-        Socket client = new Socket(getHost(), getPort());
+    public void testAbsoluteURI(@RestResource @RequestPath("test/absolute") final URI uri) throws Exception {
+        Socket client = new Socket(uri.getHost(), uri.getPort());
         PrintWriter out = new PrintWriter(client.getOutputStream(), true);
         BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()));
-        out.printf(Locale.US, "GET %s HTTP/1.1\r\nHost: %s:%d\r\n\r\n", uri, getHost(), getPort());
+        out.printf(Locale.US, "GET %s HTTP/1.1\r\nHost: %s:%d\r\n\r\n", uri, uri.getHost(), uri.getPort());
         String statusLine = in.readLine();
         String response = in.readLine();
         while (!response.startsWith("uri")) {
@@ -273,12 +232,11 @@ public class VertxTest {
         }
         client.close();
         Assertions.assertEquals("HTTP/1.1 200 OK", statusLine);
-        Assertions.assertEquals(uri, response.subSequence(5, response.length()));
+        Assertions.assertEquals(uri.toString(), response.subSequence(5, response.length()));
     }
 
     @Test
-    public void testRequest() throws Exception {
-        WebTarget target = client.target(generateURL("/request"));
+    public void testRequest(@RestResource @RequestPath("request") final WebTarget target) throws Exception {
         String val = target.request().get(String.class);
         final String pattern = "^127.0.0.1/.+";
         Assertions.assertTrue(Pattern.matches(pattern, val),

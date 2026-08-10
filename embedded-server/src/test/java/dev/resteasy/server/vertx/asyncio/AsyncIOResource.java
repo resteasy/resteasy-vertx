@@ -371,14 +371,14 @@ public class AsyncIOResource {
     @Path("blocking/file-range")
     @GET
     public CompletionStage<FileRange> getFileRangeBlocking() {
-        return async(new FileRange(new File("src/test/resources/file.txt"), 0, 2));
+        return async(new FileRange(new File("src/test/resources/file.txt"), 0, 1));
     }
 
     @WithAsyncWriterInterceptor
     @Path("async/file-range")
     @GET
     public FileRange getFileRangeAsync() {
-        return new FileRange(new File("src/test/resources/file.txt"), 0, 2);
+        return new FileRange(new File("src/test/resources/file.txt"), 0, 1);
     }
 
     @WithBlockingWriterInterceptor

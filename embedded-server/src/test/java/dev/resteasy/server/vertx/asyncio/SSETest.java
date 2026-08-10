@@ -4,53 +4,39 @@
  */
 package dev.resteasy.server.vertx.asyncio;
 
-import static org.jboss.resteasy.test.TestPortProvider.generateURL;
-
+import java.net.URI;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import jakarta.ws.rs.client.Client;
-import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.WebTarget;
+import jakarta.ws.rs.core.UriBuilder;
 import jakarta.ws.rs.sse.SseEventSource;
 
-import org.jboss.resteasy.spi.Registry;
-import org.jboss.resteasy.spi.ResteasyDeployment;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import dev.resteasy.server.vertx.VertxContainer;
+import dev.resteasy.junit.extension.annotations.RequestPath;
+import dev.resteasy.junit.extension.annotations.RestBootstrap;
+import dev.resteasy.junit.extension.annotations.RestResource;
 
+@RestBootstrap(SSEResource.class)
 public class SSETest {
-    static Client client;
 
-    @BeforeAll
-    public static void setup() throws Exception {
-        ResteasyDeployment deployment = VertxContainer.start();
-        Registry registry = deployment.getRegistry();
-        registry.addPerRequestResource(SSEResource.class);
-        client = ClientBuilder.newClient();
-    }
+    @RestResource
+    private Client client;
 
-    @AfterAll
-    public static void end() throws Exception {
-        try {
-            client.close();
-        } catch (Exception e) {
-
-        }
-        VertxContainer.stop();
-    }
+    @RestResource
+    @RequestPath("/close")
+    private URI baseUri;
 
     @Test
     public void testSSE() throws Exception {
-        WebTarget target = client.target(generateURL("/close/closed"));
-        querySSEAndAssert("RESET", "/close/reset");
-        querySSEAndAssert("HELLO", "/close/send");
+        WebTarget target = create("/closed");
+        querySSEAndAssert("RESET", "/reset");
+        querySSEAndAssert("HELLO", "/send");
 
         boolean closed = false;
         int cnt = 0;
@@ -60,12 +46,12 @@ public class SSETest {
             cnt++;
         }
 
-        querySSEAndAssert("CHECK", "/close/check");
+        querySSEAndAssert("CHECK", "/check");
     }
 
     private void querySSEAndAssert(String message, String uri)
             throws InterruptedException, ExecutionException, TimeoutException {
-        WebTarget target = client.target(generateURL(uri));
+        WebTarget target = create(uri);
         SseEventSource source = SseEventSource.target(target).build();
         CompletableFuture<String> cf = new CompletableFuture<>();
         source.register(event -> {
@@ -82,5 +68,9 @@ public class SSETest {
         try (SseEventSource x = source) {
             Assertions.assertEquals(message, cf.get(5, TimeUnit.SECONDS));
         }
+    }
+
+    private WebTarget create(final String path) {
+        return client.target(UriBuilder.fromUri(baseUri).path(path).build());
     }
 }

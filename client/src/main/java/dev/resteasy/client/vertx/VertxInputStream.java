@@ -173,7 +173,7 @@ class VertxInputStream extends InputStream {
         lock.lock();
         try {
             pending.appendBuffer(chunk);
-            if (pending.length() > maxPendingSize && !paused) {
+            if (pendingBytes() > maxPendingSize && !paused) {
                 paused = true;
                 stream.pause();
             }

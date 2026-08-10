@@ -4,48 +4,24 @@
  */
 package dev.resteasy.server.vertx.asyncio;
 
-import static org.jboss.resteasy.test.TestPortProvider.generateURL;
-
-import jakarta.ws.rs.client.Client;
-import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.WebTarget;
 
-import org.jboss.resteasy.spi.Registry;
-import org.jboss.resteasy.spi.ResteasyDeployment;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import dev.resteasy.server.vertx.VertxContainer;
+import dev.resteasy.junit.extension.annotations.RequestPath;
+import dev.resteasy.junit.extension.annotations.RestBootstrap;
+import dev.resteasy.junit.extension.annotations.RestResource;
 
+@RestBootstrap({
+        MyTypeWriter.class,
+        MyTypeInterceptor.class,
+        AsyncIOWriterResource.class
+})
 public class AsyncIOWriterTest {
 
-    static Client client;
-
-    @BeforeAll
-    public static void setup() throws Exception {
-        ResteasyDeployment deployment = VertxContainer.start();
-        deployment.getProviderFactory().register(MyTypeWriter.class);
-        deployment.getProviderFactory().register(MyTypeInterceptor.class);
-        Registry registry = deployment.getRegistry();
-        registry.addPerRequestResource(AsyncIOWriterResource.class);
-        client = ClientBuilder.newClient();
-    }
-
-    @AfterAll
-    public static void end() throws Exception {
-        try {
-            client.close();
-        } catch (Exception e) {
-
-        }
-        VertxContainer.stop();
-    }
-
     @Test
-    public void testAsyncIoWriter() throws Exception {
-        WebTarget target = client.target(generateURL("/async-io-writer"));
+    public void testAsyncIoWriter(@RestResource @RequestPath("/async-io-writer") final WebTarget target) throws Exception {
         String val = target.request().get(String.class);
         Assertions.assertEquals("OK", val);
     }
