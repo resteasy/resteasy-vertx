@@ -53,13 +53,12 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
           java-version: |
-            11
             17
             21
             25
             26
       - name: Build and Test on ${{ matrix.os }}
-        run: ${{ env.MVN_CMD }} clean install '-Djava11.home=${{env.JAVA_HOME_11_X64}}' '-Djava17.home=${{env.JAVA_HOME_17_X64}}' '-Djava21.home=${{env.JAVA_HOME_21_X64}}' '-Djava25.home=${{env.JAVA_HOME_25_X64}}'
+        run: ${{ env.MVN_CMD }} clean install '-Djava17.home=${{env.JAVA_HOME_17_X64}}' '-Djava21.home=${{env.JAVA_HOME_21_X64}}' '-Djava25.home=${{env.JAVA_HOME_25_X64}}'
       - name: Upload test logs for failed run
         uses: actions/upload-artifact@v7
         if: failure()

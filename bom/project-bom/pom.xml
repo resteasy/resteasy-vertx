@@ -20,7 +20,7 @@
 
     <properties>
         <!-- Dependency versions -->
-        <version.jakarta.ee>10.0.0</version.jakarta.ee>
+        <version.jakarta.ee>11.0.0</version.jakarta.ee>
         <version.org.jboss.logging>3.6.3.Final</version.org.jboss.logging>
     </properties>
 
