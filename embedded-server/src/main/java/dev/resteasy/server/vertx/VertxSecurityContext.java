@@ -8,28 +8,21 @@ import java.security.Principal;
 
 import jakarta.ws.rs.core.SecurityContext;
 
-import org.jboss.resteasy.plugins.server.embedded.SecurityDomain;
-
 /**
  * @author <a href="mailto:bill@burkecentral.com">Bill Burke</a>
  * @version $Revision: 1 $
  */
 public class VertxSecurityContext implements SecurityContext {
     protected final Principal principal;
-    protected final SecurityDomain domain;
-    protected final String authScheme;
     protected final boolean isSecure;
 
-    public VertxSecurityContext(final Principal principal, final SecurityDomain domain, final String authScheme,
-            final boolean secure) {
-        this.principal = principal;
-        this.domain = domain;
-        this.authScheme = authScheme;
-        isSecure = secure;
+    public VertxSecurityContext(final String username, final boolean secure) {
+        this.principal = username != null ? () -> username : null;
+        this.isSecure = secure;
     }
 
     public VertxSecurityContext() {
-        this(null, null, null, false);
+        this(null, false);
     }
 
     @Override
@@ -39,9 +32,7 @@ public class VertxSecurityContext implements SecurityContext {
 
     @Override
     public boolean isUserInRole(String role) {
-        if (domain == null)
-            return false;
-        return domain.isUserInRole(principal, role);
+        return false;
     }
 
     @Override
@@ -51,6 +42,6 @@ public class VertxSecurityContext implements SecurityContext {
 
     @Override
     public String getAuthenticationScheme() {
-        return authScheme;
+        return null;
     }
 }

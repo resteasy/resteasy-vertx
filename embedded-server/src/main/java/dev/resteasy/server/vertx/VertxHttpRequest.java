@@ -9,7 +9,6 @@ import java.io.InputStream;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
@@ -30,7 +29,6 @@ import org.jboss.resteasy.plugins.server.BaseHttpRequest;
 import org.jboss.resteasy.specimpl.ResteasyHttpHeaders;
 import org.jboss.resteasy.specimpl.ResteasyUriInfo;
 import org.jboss.resteasy.spi.HttpRequest;
-import org.jboss.resteasy.spi.NotImplementedYetException;
 import org.jboss.resteasy.spi.ResteasyAsynchronousContext;
 import org.jboss.resteasy.spi.ResteasyAsynchronousResponse;
 import org.jboss.resteasy.spi.RunnableWithException;
@@ -38,6 +36,7 @@ import org.jboss.resteasy.spi.RunnableWithException;
 import io.vertx.core.Context;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.net.SocketAddress;
+import io.vertx.ext.web.RoutingContext;
 
 import dev.resteasy.server.vertx._private.VertxLogger;
 
@@ -59,35 +58,32 @@ import dev.resteasy.server.vertx._private.VertxLogger;
  * @author Kristoffer Sjogren
  */
 class VertxHttpRequest extends BaseHttpRequest {
-    protected ResteasyHttpHeaders httpHeaders;
-    protected SynchronousDispatcher dispatcher;
-    protected String httpMethod;
-    protected InputStream inputStream;
-    protected Map<String, Object> attributes = new HashMap<String, Object>();
-    protected VertxHttpResponse response;
-    private final boolean is100ContinueExpected;
-    private VertxExecutionContext executionContext;
+    private final ResteasyHttpHeaders httpHeaders;
+    private final RoutingContext routingContext;
+    private final Map<String, Object> attributes;
+    private final VertxExecutionContext executionContext;
     private final Context context;
-    private HttpServerRequest request;
+    private final HttpServerRequest request;
+    private String httpMethod;
+    private InputStream inputStream;
+    private boolean forwarded;
 
     /**
      * Creates a new Vert.x HTTP request adapter.
      *
-     * @param context               the Vert.x context for this request
-     * @param request               the Vert.x HTTP server request
-     * @param uri                   the parsed URI information
-     * @param dispatcher            the RESTEasy synchronous dispatcher
-     * @param response              the associated response adapter
-     * @param is100ContinueExpected whether 100-Continue is expected
+     * @param context        the Vert.x context for this request
+     * @param routingContext the Vert.x Web routing context
+     * @param uri            the parsed URI information
+     * @param dispatcher     the RESTEasy synchronous dispatcher
+     * @param response       the associated response adapter
      */
-    VertxHttpRequest(final Context context, final HttpServerRequest request, final ResteasyUriInfo uri,
-            final SynchronousDispatcher dispatcher, final VertxHttpResponse response, final boolean is100ContinueExpected) {
+    VertxHttpRequest(final Context context, final RoutingContext routingContext, final ResteasyUriInfo uri,
+            final SynchronousDispatcher dispatcher, final VertxHttpResponse response) {
         super(uri);
         this.context = context;
-        this.is100ContinueExpected = is100ContinueExpected;
-        this.response = response;
-        this.request = request;
-        this.dispatcher = dispatcher;
+        this.routingContext = routingContext;
+        this.request = routingContext.request();
+        this.attributes = routingContext.data();
         this.httpHeaders = VertxUtil.extractHttpHeaders(request);
         this.httpMethod = request.method().name();
         this.executionContext = new VertxExecutionContext(this, response, dispatcher);
@@ -150,13 +146,13 @@ class VertxHttpRequest extends BaseHttpRequest {
 
     @Override
     public void forward(String path) {
-        // TODO (jrp) can we implement this?
-        throw new NotImplementedYetException();
+        forwarded = true;
+        routingContext.reroute(path);
     }
 
     @Override
     public boolean wasForwarded() {
-        return false;
+        return forwarded;
     }
 
     /**
