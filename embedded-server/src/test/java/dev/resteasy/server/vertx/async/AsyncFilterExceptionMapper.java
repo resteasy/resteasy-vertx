@@ -1,0 +1,20 @@
+/*
+ * Copyright The RESTEasy Authors
+ * SPDX-License-Identifier: Apache-2.0
+ */
+package dev.resteasy.server.vertx.async;
+
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
+import jakarta.ws.rs.ext.ExceptionMapper;
+import jakarta.ws.rs.ext.Provider;
+
+@Provider
+public class AsyncFilterExceptionMapper implements ExceptionMapper<AsyncFilterException> {
+
+    @Override
+    public Response toResponse(AsyncFilterException exception) {
+        return Response.ok("exception was mapped").status(Status.ACCEPTED).build();
+    }
+
+}

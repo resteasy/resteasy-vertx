@@ -52,8 +52,9 @@
         <module>bom/bom</module>
         <module>bom/project-bom</module>
         <module>bom/test-bom</module>
-        <module>embedded-server</module>
+        <module>api</module>
         <module>client</module>
+        <module>embedded-server</module>
     </modules>
 
     <scm>
@@ -79,15 +80,21 @@
         <maven.min.version>3.9.0</maven.min.version>
 
         <!-- Dependency versions -->
-        <version.io.vertx>5.0.12</version.io.vertx>
+        <version.io.vertx>5.1.4</version.io.vertx>
         <version.org.jboss.logging.jboss-logging-tools>3.0.4.Final</version.org.jboss.logging.jboss-logging-tools>
-        <version.org.jboss.resteasy>6.2.16.Final</version.org.jboss.resteasy>
+        <version.org.jboss.logmanager>3.1.2.Final</version.org.jboss.logmanager>
+        <version.org.jboss.resteasy>6.2.17.Final</version.org.jboss.resteasy>
 
         <!-- Plugins versions -->
         <version.spotless-maven-plugin>3.8.0</version.spotless-maven-plugin>
 
         <!-- Test options -->
         <additionalJvmArgs>-Djava.io.tmpdir=${project.build.directory}</additionalJvmArgs>
+        <!-- Please note this is an undocumented and fragile property as it may not work in the future.
+             However, for now it is all we have to find the root project directory. -->
+        <logging.configuration>file://${maven.multiModuleProjectDirectory}/logging.properties</logging.configuration>
+        <org.jboss.logmanager.nocolor>true</org.jboss.logmanager.nocolor>
+        <test.log.console.formatter>CONSOLE-PATTERN</test.log.console.formatter>
 
         <!-- maven-release-plugin configuration -->
         <autoVersionSubmodules>true</autoVersionSubmodules>
@@ -103,6 +110,16 @@
         <central.deploymentName>resteasy-vertx-${project.version}</central.deploymentName>
     </properties>
 
+    <dependencies>
+        <!-- Defined here as we set this on the surefire and failsafe configuration. This is only used for testing. -->
+        <dependency>
+            <groupId>org.jboss.logmanager</groupId>
+            <artifactId>jboss-logmanager</artifactId>
+            <version>${version.org.jboss.logmanager}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
     <build>
         <pluginManagement>
             <plugins>
@@ -116,6 +133,17 @@
                                 <version>${version.org.jboss.logging.jboss-logging-tools}</version>
                             </path>
                         </annotationProcessorPaths>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <configuration>
+                        <systemPropertyVariables>
+                            <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
+                            <logging.configuration>${logging.configuration}</logging.configuration>
+                            <client.log.dir>${project.build.directory}</client.log.dir>
+                            <test.log.console.formatter>${test.log.console.formatter}</test.log.console.formatter>
+                        </systemPropertyVariables>
                     </configuration>
                 </plugin>
             </plugins>
@@ -288,6 +316,20 @@
                     </plugin>
                 </plugins>
             </build>
+        </profile>
+
+        <profile>
+            <id>color-logs</id>
+            <activation>
+                <property>
+                    <name>maven.test.redirectTestOutputToFile</name>
+                    <value>false</value>
+                </property>
+            </activation>
+            <properties>
+                <test.log.console.formatter>COLOR-PATTERN</test.log.console.formatter>
+                <org.jboss.logmanager.nocolor>false</org.jboss.logmanager.nocolor>
+            </properties>
         </profile>
     </profiles>
 </project>
