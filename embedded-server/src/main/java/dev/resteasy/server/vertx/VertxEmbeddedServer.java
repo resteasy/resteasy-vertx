@@ -5,6 +5,7 @@
 package dev.resteasy.server.vertx;
 
 import java.util.Locale;
+import java.util.ServiceLoader;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Lock;
@@ -21,16 +22,22 @@ import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
+import io.vertx.ext.web.Router;
 
 import dev.resteasy.server.vertx._private.VertxLogger;
 import dev.resteasy.vertx.VertxManager;
+import dev.resteasy.vertx.api.RouterFactory;
 import dev.resteasy.vertx.config.ResteasyVertxOptions;
 
 /**
- * Embedded server implementation using Vert.x HTTP server.
+ * Embedded server implementation using Vert.x HTTP server with Vert.x Web {@link Router}.
  * <p>
  * This server integrates RESTEasy with Vert.x's async, event-driven HTTP server. It implements
  * the {@link EmbeddedServer} interface for SeBootstrap integration.
+ * </p>
+ * <p>
+ * The server uses a {@link Router} for request handling, which enables Vert.x Web middleware
+ * (CORS, sessions, authentication, etc.) to be added via a custom {@link RouterFactory}.
  * </p>
  * <p>
  * The server can be configured programmatically via SeBootstrap:
@@ -92,14 +99,19 @@ public class VertxEmbeddedServer implements EmbeddedServer {
                     contextPath = configContextPath;
                 }
 
-                // Create request handler
-                final VertxRequestHandler handler = new VertxRequestHandler(vertx, deployment, contextPath, null);
+                // Create router via factory
+                final Router router = createRouter(vertx, configuration);
+
+                // Install the RESTEasy handler
+                final VertxRoutingContextHandler handler = new VertxRoutingContextHandler(vertx, router, deployment,
+                        contextPath);
+                router.route().handler(handler);
 
                 // Create and start HTTP server
                 httpServer = vertx.createHttpServer(serverOptions);
 
                 Future<HttpServer> listenFuture = httpServer
-                        .requestHandler(handler)
+                        .requestHandler(router)
                         .listen(configuration.port(), configuration.host());
                 listenFuture.mapEmpty()
                         .toCompletionStage()
@@ -160,5 +172,17 @@ public class VertxEmbeddedServer implements EmbeddedServer {
     @Override
     public ResteasyDeployment getDeployment() {
         return deployment;
+    }
+
+    private static Router createRouter(final Vertx vertx, final Configuration configuration) {
+        RouterFactory factory;
+        if (configuration.hasProperty(RouterFactory.PROPERTY)) {
+            factory = (RouterFactory) configuration.property(RouterFactory.PROPERTY);
+        } else {
+            factory = ServiceLoader.load(RouterFactory.class)
+                    .findFirst()
+                    .orElse(Router::router);
+        }
+        return factory.create(vertx);
     }
 }
