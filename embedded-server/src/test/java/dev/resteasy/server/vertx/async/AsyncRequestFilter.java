@@ -62,9 +62,8 @@ public abstract class AsyncRequestFilter implements ContainerRequestFilter {
             ExecutorService executor = Executors.newSingleThreadExecutor();
             executor.submit(() -> {
                 try {
-                    Thread.sleep(2000);
+                    Thread.sleep(50L);
                 } catch (InterruptedException e) {
-                    // TODO Auto-generated catch block
                     LOG.error("Error:", e);
                 }
                 AsyncResponse resp = req.getAsyncContext().getAsyncResponse();

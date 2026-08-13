@@ -183,7 +183,7 @@ public class AsyncIOResource {
     private <T> CompletionStage<T> async(T value) {
         return CompletableFuture.supplyAsync(() -> {
             try {
-                Thread.sleep(100);
+                Thread.sleep(10L);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
