@@ -208,6 +208,9 @@ class VertxHttpRequest extends BaseHttpRequest {
                 throw VertxLogger.LOGGER.alreadySuspended();
             }
             wasSuspended = true;
+            if (time > 0) {
+                asyncResponse.setTimeout(time, unit);
+            }
             return asyncResponse;
         }
 

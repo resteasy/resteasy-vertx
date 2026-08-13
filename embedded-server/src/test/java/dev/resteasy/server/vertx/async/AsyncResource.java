@@ -11,6 +11,7 @@ import java.util.concurrent.TimeUnit;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.container.AsyncResponse;
 import jakarta.ws.rs.container.Suspended;
 import jakarta.ws.rs.core.MediaType;
@@ -45,6 +46,13 @@ public class AsyncResource {
             }
         };
         t.start();
+    }
+
+    @GET
+    @Path("throw")
+    @Produces("text/plain")
+    public void throwWhileSuspended(@Suspended final AsyncResponse response) {
+        throw new WebApplicationException("exception without resume");
     }
 
     @GET

@@ -4,12 +4,15 @@
  */
 package dev.resteasy.server.vertx.async;
 
+import java.util.concurrent.TimeUnit;
+
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.Response;
 
 import org.jboss.resteasy.spi.HttpResponseCodes;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import dev.resteasy.junit.extension.annotations.RequestPath;
 import dev.resteasy.junit.extension.annotations.RestBootstrap;
@@ -29,10 +32,13 @@ public class AsyncTest {
         Assertions.assertEquals("hello", response.readEntity(String.class), "Wrong response content");
     }
 
-    /**
-     * @tpTestDetails Service unavailable test
-     * @tpSince RESTEasy 3.0.16
-     */
+    @Test
+    @Timeout(value = 5, unit = TimeUnit.SECONDS)
+    public void testExceptionWhileSuspended(@RestResource @RequestPath("async/throw") final WebTarget target) {
+        Response response = target.request().get();
+        Assertions.assertEquals(Response.Status.INTERNAL_SERVER_ERROR, response.getStatusInfo());
+    }
+
     @Test
     public void testTimeout(@RestResource @RequestPath("async/timeout") final WebTarget target) throws Exception {
         Response response = target.request().get();

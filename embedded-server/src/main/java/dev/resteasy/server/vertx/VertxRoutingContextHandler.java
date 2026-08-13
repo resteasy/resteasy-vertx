@@ -128,10 +128,18 @@ class VertxRoutingContextHandler implements Handler<RoutingContext> {
         try {
             service(ctx, rc, vertxRequest, vertxResponse);
         } catch (Failure e) {
-            vertxResponse.setStatus(e.getErrorCode());
+            if (vertxRequest.getAsyncContext().isSuspended()) {
+                vertxRequest.getAsyncContext().getAsyncResponse().resume(e);
+            } else {
+                vertxResponse.setStatus(e.getErrorCode());
+            }
         } catch (Exception ex) {
-            vertxResponse.setStatus(500);
-            VertxLogger.LOGGER.failedRequest(ex);
+            if (vertxRequest.getAsyncContext().isSuspended()) {
+                vertxRequest.getAsyncContext().getAsyncResponse().resume(ex);
+            } else {
+                vertxResponse.setStatus(500);
+                VertxLogger.LOGGER.failedRequest(ex);
+            }
         }
 
         if (!vertxRequest.getAsyncContext().isSuspended()) {
