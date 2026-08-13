@@ -73,6 +73,11 @@
 
         <!-- Test dependencies -->
         <dependency>
+            <groupId>dev.resteasy.junit.extension</groupId>
+            <artifactId>resteasy-junit-extension</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-core</artifactId>
             <classifier>tests</classifier>

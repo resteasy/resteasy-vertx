@@ -178,9 +178,7 @@ class VertxRoutingContextHandler implements Handler<RoutingContext> {
     }
 
     private SecurityContext createSecurityContext(final RoutingContext rc) {
-        if (rc.user() != null) {
-            return new VertxSecurityContext(rc.user().subject(), rc.request().isSSL());
-        }
-        return new VertxSecurityContext();
+        final String username = rc.user() != null ? rc.user().subject() : null;
+        return new VertxSecurityContext(username, rc.request().isSSL());
     }
 }

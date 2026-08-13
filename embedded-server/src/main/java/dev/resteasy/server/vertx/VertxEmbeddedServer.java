@@ -11,7 +11,10 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import javax.net.ssl.SSLContext;
+
 import jakarta.ws.rs.SeBootstrap.Configuration;
+import jakarta.ws.rs.SeBootstrap.Configuration.SSLClientAuthentication;
 
 import org.jboss.resteasy.core.ResteasyDeploymentImpl;
 import org.jboss.resteasy.plugins.server.embedded.EmbeddedServer;
@@ -20,6 +23,7 @@ import org.jboss.resteasy.spi.ResteasyDeployment;
 
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
+import io.vertx.core.http.ClientAuth;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.ext.web.Router;
@@ -28,6 +32,7 @@ import dev.resteasy.server.vertx._private.VertxLogger;
 import dev.resteasy.vertx.VertxManager;
 import dev.resteasy.vertx.api.RouterFactory;
 import dev.resteasy.vertx.config.ResteasyVertxOptions;
+import dev.resteasy.vertx.ssl.SslContextConverter;
 
 /**
  * Embedded server implementation using Vert.x HTTP server with Vert.x Web {@link Router}.
@@ -81,10 +86,12 @@ public class VertxEmbeddedServer implements EmbeddedServer {
 
                 // Configure SSL if HTTPS
                 if ("HTTPS".equalsIgnoreCase(configuration.protocol())) {
-                    if (configuration.sslContext() != null) {
-                        // TODO: Convert javax.net.ssl.SSLContext to Vert.x SSLOptions
-                        VertxLogger.LOGGER.warn("SSL configuration via Configuration.sslContext() is not yet supported.");
+                    SSLContext sslContext = configuration.sslContext();
+                    if (sslContext == null) {
+                        sslContext = SSLContext.getDefault();
                     }
+                    SslContextConverter.configureSsl(serverOptions, sslContext,
+                            toClientAuth(configuration.sslClientAuthentication()));
                 }
 
                 // Determine the context path
@@ -172,6 +179,17 @@ public class VertxEmbeddedServer implements EmbeddedServer {
     @Override
     public ResteasyDeployment getDeployment() {
         return deployment;
+    }
+
+    private static ClientAuth toClientAuth(final SSLClientAuthentication sslClientAuthentication) {
+        if (sslClientAuthentication == null) {
+            return ClientAuth.NONE;
+        }
+        return switch (sslClientAuthentication) {
+            case MANDATORY -> ClientAuth.REQUIRED;
+            case OPTIONAL -> ClientAuth.REQUEST;
+            default -> ClientAuth.NONE;
+        };
     }
 
     private static Router createRouter(final Vertx vertx, final Configuration configuration) {

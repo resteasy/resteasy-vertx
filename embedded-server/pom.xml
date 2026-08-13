@@ -140,22 +140,4 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <configuration>
-                    <!-- We can't use this yet as we need an upgrade for the changes in the resteasy-junit-extension
-                    <dependenciesToScan>org.jboss.resteasy:resteasy-embedded-server-tests</dependenciesToScan> -->
-                    <excludedGroups>NoSslTests</excludedGroups>
-                    <!-- This test was previously only executed on the UndertowJaxrsServer. It does not seem to
-                         work with Vert.x, so we'll just skip it. -->
-                    <excludes>
-                        <exclude>**/NonCDIValidatorFactoryTest</exclude>
-                    </excludes>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
 </project>
