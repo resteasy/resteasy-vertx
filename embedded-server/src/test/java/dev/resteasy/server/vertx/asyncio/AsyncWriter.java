@@ -44,7 +44,7 @@ public class AsyncWriter implements AsyncMessageBodyWriter<AsyncWriterData> {
         CompletionStage<Void> start = t.simulateSlowIo
                 ? CompletableFuture.runAsync(() -> {
                     try {
-                        Thread.sleep(1000);
+                        Thread.sleep(50L);
                     } catch (InterruptedException e) {
                         throw new RuntimeException(e);
                     }
