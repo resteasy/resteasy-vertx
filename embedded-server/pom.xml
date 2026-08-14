@@ -140,4 +140,15 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <dependenciesToScan>org.jboss.resteasy:resteasy-embedded-server-tests</dependenciesToScan>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>
