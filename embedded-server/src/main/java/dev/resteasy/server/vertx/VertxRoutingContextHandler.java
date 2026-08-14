@@ -5,6 +5,7 @@
 package dev.resteasy.server.vertx;
 
 import java.io.IOException;
+import java.io.InputStream;
 
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
@@ -123,6 +124,8 @@ class VertxRoutingContextHandler implements Handler<RoutingContext> {
 
         if (body != null && body.length() > 0) {
             vertxRequest.setInputStream(new BufferInputStream(body));
+        } else {
+            vertxRequest.setInputStream(InputStream.nullInputStream());
         }
 
         try {
