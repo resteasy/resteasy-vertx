@@ -26,6 +26,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.http.ClientAuth;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
+import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 
 import dev.resteasy.server.vertx._private.VertxLogger;
@@ -66,10 +67,20 @@ public class VertxEmbeddedServer implements EmbeddedServer {
     private HttpServer httpServer;
 
     /**
-     * No-arg constructor required by ServiceLoader.
+     * Creates a new embedded server with a default deployment.
      */
     public VertxEmbeddedServer() {
-        this.deployment = new ResteasyDeploymentImpl();
+        this(new ResteasyDeploymentImpl());
+    }
+
+    /**
+     * Creates a new embedded server with the given deployment. Subclasses can use this to provide a custom
+     * {@link ResteasyDeployment} implementation.
+     *
+     * @param deployment the RESTEasy deployment to use
+     */
+    protected VertxEmbeddedServer(final ResteasyDeployment deployment) {
+        this.deployment = deployment;
     }
 
     @Override
@@ -80,7 +91,7 @@ public class VertxEmbeddedServer implements EmbeddedServer {
                 throw VertxLogger.LOGGER.serverAlreadyStarted();
             }
             EmbeddedServers.validateDeployment(deployment);
-            final Vertx vertx = VertxManager.instance().acquire();
+            final Vertx vertx = VertxManager.get().vertx();
             try {
                 final HttpServerOptions serverOptions = new HttpServerOptions();
 
@@ -108,11 +119,13 @@ public class VertxEmbeddedServer implements EmbeddedServer {
 
                 // Create router via factory
                 final Router router = createRouter(vertx, configuration);
+                final Route route = router.route();
+                configurePreRoute(route);
 
                 // Install the RESTEasy handler
                 final VertxRoutingContextHandler handler = new VertxRoutingContextHandler(vertx, router, deployment,
                         contextPath);
-                router.route().handler(handler);
+                route.handler(handler);
 
                 // Create and start HTTP server
                 httpServer = vertx.createHttpServer(serverOptions);
@@ -133,7 +146,7 @@ public class VertxEmbeddedServer implements EmbeddedServer {
                     }
                     httpServer = null;
                 }
-                VertxManager.instance().close();
+                VertxManager.get().close();
                 throw VertxLogger.LOGGER.failedToStartServer(e);
             }
         } finally {
@@ -168,7 +181,7 @@ public class VertxEmbeddedServer implements EmbeddedServer {
                     }
                     throw VertxLogger.LOGGER.failedToShutdownServer(e, timeout, unit.name().toLowerCase(Locale.ROOT));
                 } finally {
-                    VertxManager.instance().close();
+                    VertxManager.get().close();
                 }
             }
         } finally {
@@ -179,6 +192,15 @@ public class VertxEmbeddedServer implements EmbeddedServer {
     @Override
     public ResteasyDeployment getDeployment() {
         return deployment;
+    }
+
+    /**
+     * Configures the {@link Route} before the RESTEasy handler is installed. Subclasses can override this to add
+     * handlers that run before RESTEasy processes the request.
+     *
+     * @param route the route to configure
+     */
+    protected void configurePreRoute(final Route route) {
     }
 
     private static ClientAuth toClientAuth(final SSLClientAuthentication sslClientAuthentication) {

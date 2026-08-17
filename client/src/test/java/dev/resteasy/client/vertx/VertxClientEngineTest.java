@@ -63,7 +63,7 @@ public class VertxClientEngineTest {
 
     @BeforeEach
     public void before() {
-        vertx = VertxManager.instance().acquire();
+        vertx = VertxManager.get().vertx();
         server = vertx.createHttpServer();
         executorService = Executors.newSingleThreadScheduledExecutor();
     }
@@ -73,7 +73,7 @@ public class VertxClientEngineTest {
         if (client != null) {
             client.close();
         }
-        VertxManager.instance().close();
+        VertxManager.get().close();
         executorService.shutdownNow();
     }
 

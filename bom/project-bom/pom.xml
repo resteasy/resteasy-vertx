@@ -22,6 +22,7 @@
         <!-- Dependency versions -->
         <version.jakarta.ee>11.0.0</version.jakarta.ee>
         <version.org.jboss.logging>3.6.3.Final</version.org.jboss.logging>
+        <version.org.jboss.weld>6.0.4.Final</version.org.jboss.weld>
     </properties>
 
     <dependencyManagement>
@@ -95,6 +96,12 @@
                 <groupId>org.jboss.logging</groupId>
                 <artifactId>jboss-logging-annotations</artifactId>
                 <version>${version.org.jboss.logging.jboss-logging-tools}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.jboss.weld.se</groupId>
+                <artifactId>weld-se-core</artifactId>
+                <version>${version.org.jboss.weld}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
