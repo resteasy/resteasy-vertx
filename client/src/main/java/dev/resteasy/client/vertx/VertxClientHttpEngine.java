@@ -314,7 +314,7 @@ public class VertxClientHttpEngine implements AsyncClientHttpEngine {
         try {
             httpClient.close();
         } finally {
-            VertxManager.instance().close();
+            VertxManager.get().close();
         }
     }
 
@@ -399,12 +399,12 @@ public class VertxClientHttpEngine implements AsyncClientHttpEngine {
     }
 
     private static HttpClient createClient(final HttpClientOptions options) {
-        final Vertx vertx = VertxManager.instance().acquire();
+        final Vertx vertx = VertxManager.get().vertx();
         try {
             final HttpClientOptions httpOptions = options == null ? new HttpClientOptions() : options;
             return vertx.createHttpClient(httpOptions);
         } catch (Throwable t) {
-            VertxManager.instance().close();
+            VertxManager.get().close();
             throw t;
         }
     }

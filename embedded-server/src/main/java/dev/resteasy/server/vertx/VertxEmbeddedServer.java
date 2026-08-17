@@ -80,7 +80,7 @@ public class VertxEmbeddedServer implements EmbeddedServer {
                 throw VertxLogger.LOGGER.serverAlreadyStarted();
             }
             EmbeddedServers.validateDeployment(deployment);
-            final Vertx vertx = VertxManager.instance().acquire();
+            final Vertx vertx = VertxManager.get().vertx();
             try {
                 final HttpServerOptions serverOptions = new HttpServerOptions();
 
@@ -133,7 +133,7 @@ public class VertxEmbeddedServer implements EmbeddedServer {
                     }
                     httpServer = null;
                 }
-                VertxManager.instance().close();
+                VertxManager.get().close();
                 throw VertxLogger.LOGGER.failedToStartServer(e);
             }
         } finally {
@@ -168,7 +168,7 @@ public class VertxEmbeddedServer implements EmbeddedServer {
                     }
                     throw VertxLogger.LOGGER.failedToShutdownServer(e, timeout, unit.name().toLowerCase(Locale.ROOT));
                 } finally {
-                    VertxManager.instance().close();
+                    VertxManager.get().close();
                 }
             }
         } finally {

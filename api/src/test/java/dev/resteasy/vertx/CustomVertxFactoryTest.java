@@ -63,8 +63,8 @@ public class CustomVertxFactoryTest {
 
     @Test
     public void checkVertxFactory() {
-        try (VertxManager manager = VertxManager.instance()) {
-            final Vertx vertx = manager.acquire();
+        try (VertxManager manager = VertxManager.get()) {
+            final Vertx vertx = manager.vertx();
             Assertions.assertInstanceOf(TestVertxWrapper.class, vertx);
         }
     }

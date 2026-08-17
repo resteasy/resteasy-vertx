@@ -13,49 +13,49 @@ import io.vertx.core.Vertx;
 public class VertxManagerTest {
 
     @Test
-    public void acquireReturnsNonNull() {
-        try (VertxManager manager = VertxManager.instance()) {
-            final Vertx vertx = manager.acquire();
+    public void vertxReturnsNonNull() {
+        try (VertxManager manager = VertxManager.get()) {
+            final Vertx vertx = manager.vertx();
             Assertions.assertNotNull(vertx);
         }
     }
 
     @Test
-    public void acquireReturnsSameInstance() {
-        final VertxManager manager = VertxManager.instance();
+    public void vertxReturnsSameInstance() {
+        final VertxManager manager = VertxManager.get();
         try (manager) {
-            final Vertx first = manager.acquire();
-            final Vertx second = manager.acquire();
+            final Vertx first = manager.vertx();
+            final Vertx second = manager.vertx();
             Assertions.assertSame(first, second);
         } finally {
-            // The manager must be closed twice as two acquires have happened.
+            // The manager must be closed twice as two vertx() calls have happened.
             manager.close();
         }
     }
 
     @Test
     public void closeWithOutstandingRefKeepsVertxAlive() {
-        final VertxManager manager = VertxManager.instance();
+        final VertxManager manager = VertxManager.get();
         try (manager) {
-            final Vertx first = manager.acquire();
-            // Acquire an again, then close it once. This should only close once the second close is invoked which
+            final Vertx first = manager.vertx();
+            // Call vertx() again, then close it once. This should only close once the second close is invoked which
             // happens in the try-with-resources
-            manager.acquire();
+            manager.vertx();
             manager.close();
-            final Vertx stillAlive = manager.acquire();
+            final Vertx stillAlive = manager.vertx();
             Assertions.assertSame(first, stillAlive, "Vertx instance should still be the same while refs remain");
         } finally {
-            // The third close is required because 3 acquires happen and two close invocation.
+            // The third close is required because 3 vertx() calls happen and two close invocations.
             manager.close();
         }
     }
 
     @Test
-    public void acquireAfterFullReleaseCreatesNewInstance() {
-        try (VertxManager manager = VertxManager.instance()) {
-            final Vertx first = manager.acquire();
+    public void vertxAfterFullReleaseCreatesNewInstance() {
+        try (VertxManager manager = VertxManager.get()) {
+            final Vertx first = manager.vertx();
             manager.close();
-            final Vertx second = manager.acquire();
+            final Vertx second = manager.vertx();
             Assertions.assertNotSame(first, second, "New Vertx instance should be created after full release");
         }
     }
