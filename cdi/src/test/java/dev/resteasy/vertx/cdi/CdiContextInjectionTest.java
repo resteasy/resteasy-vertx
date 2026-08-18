@@ -21,6 +21,10 @@ import jakarta.ws.rs.core.UriInfo;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import io.vertx.core.Vertx;
+import io.vertx.ext.web.Router;
+import io.vertx.ext.web.RoutingContext;
+
 import dev.resteasy.junit.extension.annotations.RequestPath;
 import dev.resteasy.junit.extension.annotations.RestBootstrap;
 import dev.resteasy.junit.extension.annotations.RestResource;
@@ -35,40 +39,72 @@ class CdiContextInjectionTest {
     @Test
     void uriInfo(@RestResource @RequestPath("context/uriInfo") final WebTarget target) {
         try (Response response = target.request().get()) {
-            Assertions.assertEquals(200, response.getStatus());
-            Assertions.assertEquals("/context/uriInfo", response.readEntity(String.class));
+            final String value = response.readEntity(String.class);
+            Assertions.assertEquals(200, response.getStatus(), () -> "Expected a status of 200: %s".formatted(value));
+            Assertions.assertEquals("/context/uriInfo", value);
         }
     }
 
     @Test
     void httpHeaders(@RestResource @RequestPath("context/httpHeaders") final WebTarget target) {
         try (Response response = target.request().header("X-Test-Header", "test-value").get()) {
-            Assertions.assertEquals(200, response.getStatus());
-            Assertions.assertEquals("test-value", response.readEntity(String.class));
+            final String value = response.readEntity(String.class);
+            Assertions.assertEquals(200, response.getStatus(), () -> "Expected a status of 200: %s".formatted(value));
+            Assertions.assertEquals("test-value", value);
         }
     }
 
     @Test
     void request(@RestResource @RequestPath("context/request") final WebTarget target) {
         try (Response response = target.request().get()) {
-            Assertions.assertEquals(200, response.getStatus());
-            Assertions.assertEquals("GET", response.readEntity(String.class));
+            final String value = response.readEntity(String.class);
+            Assertions.assertEquals(200, response.getStatus(), () -> "Expected a status of 200: %s".formatted(value));
+            Assertions.assertEquals("GET", value);
         }
     }
 
     @Test
     void securityContext(@RestResource @RequestPath("context/securityContext") final WebTarget target) {
         try (Response response = target.request().get()) {
-            Assertions.assertEquals(200, response.getStatus());
-            Assertions.assertEquals("false", response.readEntity(String.class));
+            final String value = response.readEntity(String.class);
+            Assertions.assertEquals(200, response.getStatus(), () -> "Expected a status of 200: %s".formatted(value));
+            Assertions.assertEquals("false", value);
         }
     }
 
     @Test
     void configuration(@RestResource @RequestPath("context/configuration") final WebTarget target) {
         try (Response response = target.request().get()) {
-            Assertions.assertEquals(200, response.getStatus());
-            Assertions.assertEquals(RuntimeType.SERVER.name(), response.readEntity(String.class));
+            final String value = response.readEntity(String.class);
+            Assertions.assertEquals(200, response.getStatus(), () -> "Expected a status of 200: %s".formatted(value));
+            Assertions.assertEquals(RuntimeType.SERVER.name(), value);
+        }
+    }
+
+    @Test
+    void checkVertx(@RestResource @RequestPath("context/vertx") final WebTarget target) {
+        try (Response response = target.request().get()) {
+            final String value = response.readEntity(String.class);
+            Assertions.assertEquals(200, response.getStatus(), () -> "Expected a status of 200: %s".formatted(value));
+            Assertions.assertEquals("vertx-injected", value);
+        }
+    }
+
+    @Test
+    void checkRoutingContext(@RestResource @RequestPath("context/routing-context") final WebTarget target) {
+        try (Response response = target.request().get()) {
+            final String value = response.readEntity(String.class);
+            Assertions.assertEquals(200, response.getStatus(), () -> "Expected a status of 200: %s".formatted(value));
+            Assertions.assertEquals("routing-context-injected", value);
+        }
+    }
+
+    @Test
+    void checkRouter(@RestResource @RequestPath("context/router") final WebTarget target) {
+        try (Response response = target.request().get()) {
+            final String value = response.readEntity(String.class);
+            Assertions.assertEquals(200, response.getStatus(), () -> "Expected a status of 200: %s".formatted(value));
+            Assertions.assertEquals("router-injected", value);
         }
     }
 
@@ -90,6 +126,15 @@ class CdiContextInjectionTest {
 
         @Inject
         Configuration configuration;
+
+        @Inject
+        Vertx vertx;
+
+        @Inject
+        RoutingContext routingContext;
+
+        @Inject
+        Router router;
 
         @GET
         @Path("/uriInfo")
@@ -119,6 +164,24 @@ class CdiContextInjectionTest {
         @Path("/configuration")
         public String configuration() {
             return configuration.getRuntimeType().name();
+        }
+
+        @GET
+        @Path("/vertx")
+        public String vertx() {
+            return vertx == null ? null : "vertx-injected";
+        }
+
+        @GET
+        @Path("/routing-context")
+        public String routingContext() {
+            return routingContext == null ? null : "routing-context-injected";
+        }
+
+        @GET
+        @Path("/router")
+        public String router() {
+            return router == null ? null : "router-injected";
         }
     }
 }

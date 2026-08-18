@@ -1,0 +1,124 @@
+[[cdi]]
+
+== CDI Integration
+
+The CDI module enables Jakarta Contexts and Dependency Injection for Jakarta REST resources running on the Vert.x embedded server.
+Adding the `resteasy-vertx-cdi` dependency to the classpath is all that is needed -- it is automatically activated via `ServiceLoader`.
+
+=== Dependency
+
+The CDI module requires https://weld.cdi-spec.org[Weld] as the CDI implementation for request context management.
+Weld is included as a transitive dependency.
+
+[source,xml]
+----
+<dependency>
+    <groupId>dev.resteasy.vertx</groupId>
+    <artifactId>resteasy-vertx-cdi</artifactId>
+</dependency>
+----
+
+=== Features
+
+When the CDI module is active:
+
+* Jakarta REST resources are managed as CDI beans with full injection support
+* `@ApplicationScoped`, `@RequestScoped`, and other CDI scopes work as expected
+* CDI interceptors and decorators are supported
+* Vert.x types are available for injection with `@Inject`:
+** `Vertx` -- `@ApplicationScoped`, the shared Vert.x instance
+** `RoutingContext` -- `@RequestScoped`, the routing context for the current request
+** `Router` -- `@RequestScoped`, the Vert.x Web router
+* The CDI request context is automatically activated and deactivated per HTTP request
+* CDI context is propagated to Vert.x worker threads for `@Suspended` async processing
+
+=== Usage with SeBootstrap
+
+[source,java]
+----
+@ApplicationScoped
+public class GreetingService {
+    public String greet(String name) {
+        return "Hello, " + name + "!";
+    }
+}
+
+@Path("/greeting")
+@RequestScoped
+public class GreetingResource {
+    @Inject
+    GreetingService service;
+
+    @Inject
+    Vertx vertx;
+
+    @GET
+    @Produces(MediaType.TEXT_PLAIN)
+    public String greet(@QueryParam("name") String name) {
+        return service.greet(name);
+    }
+}
+
+// Start with SeBootstrap -- CDI container is automatically initialized
+SeBootstrap.Instance instance = SeBootstrap.start(MyApplication.class, config)
+    .toCompletableFuture()
+    .join();
+----
+
+=== CDI Container Lifecycle
+
+The CDI module manages the CDI container automatically:
+
+* If an existing CDI container is already running (e.g., started by the application or test framework), it is reused
+* If no container is running, a new one is created with bean-defining annotations for `@Path`, `@Provider`, and `@ApplicationPath`
+* The container is shut down when the server stops, but only if it was created by the module
+
+=== Standalone Usage
+
+For manual control, the CDI container can be initialized before the server:
+
+[source,java]
+----
+// Boot CDI
+try (SeContainer container = new Weld().skipShutdownHook().initialize()) {
+
+    SeBootstrap.Configuration config = SeBootstrap.Configuration.builder()
+        .host("localhost")
+        .port(8080)
+        .build();
+    SeBootstrap.Instance server = SeBootstrap.start(GreetingApplication.class, config)
+        .toCompletableFuture().join();
+    // ... use the server ...
+
+    server.stop().toCompletableFuture().join();
+}
+----
+
+=== Context Injection
+
+In addition to standard Jakarta REST context types, CDI resources can inject Vert.x types using `@Inject`:
+
+[source,java]
+----
+@Path("/info")
+@RequestScoped
+public class InfoResource {
+    @Inject
+    Vertx vertx;
+
+    @Inject
+    RoutingContext routingContext;
+
+    @Inject
+    Router router;
+
+    @Inject
+    UriInfo uriInfo;
+
+    @GET
+    @Produces(MediaType.TEXT_PLAIN)
+    public String info() {
+        return uriInfo.getRequestUri().toString();
+    }
+}
+----

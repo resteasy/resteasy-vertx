@@ -1,0 +1,150 @@
+[[migration]]
+
+== Migrating from 1.x to 2.x
+
+RESTEasy Vert.x 2.0 is a major release with significant architectural changes.
+This guide covers the key changes and how to update your code.
+
+=== Package Rename
+
+All packages have been renamed to align with the new group ID `dev.resteasy.vertx`:
+
+.Package name changes
+[cols="2,2",options="header"]
+|===
+| Old Package | New Package
+
+| `org.jboss.resteasy.client.jaxrs.engines.vertx`
+| `dev.resteasy.client.vertx`
+
+| `org.jboss.resteasy.plugins.server.vertx`
+| `dev.resteasy.server.vertx`
+|===
+
+Update all import statements in your code accordingly.
+
+=== Server: SeBootstrap Replaces VertxJaxrsServer
+
+The `VertxJaxrsServer` class and the deprecated `EmbeddedJaxrsServer` interface have been removed.
+Use the standard Jakarta REST `SeBootstrap` API instead:
+
+.Old (1.x)
+[source,java]
+----
+VertxJaxrsServer server = new VertxJaxrsServer();
+server.setPort(8080);
+server.setRootResourcePath("/api");
+server.setSecurityDomain(domain);
+ResteasyDeployment deployment = server.getDeployment();
+deployment.getRegistry().addPerRequestResource(MyResource.class);
+server.start();
+----
+
+.New (2.x)
+[source,java]
+----
+SeBootstrap.Configuration config = SeBootstrap.Configuration.builder()
+    .host("localhost")
+    .port(8080)
+    .rootPath("/api")
+    .build();
+
+SeBootstrap.Instance instance = SeBootstrap.start(MyApplication.class, config)
+    .toCompletableFuture()
+    .join();
+----
+
+=== Server: Vert.x Web Router
+
+The embedded server now uses a Vert.x Web `Router` internally.
+This adds `io.vertx:vertx-web` as a required transitive dependency.
+
+You can customize the router to add middleware (CORS, sessions, authentication) by providing a `RouterFactory`.
+See <<embedded-server>> for details.
+
+=== Server: Authentication
+
+The `SecurityDomain` interface is no longer used.
+Use Vert.x Web authentication handlers on the `Router` via a `RouterFactory` instead:
+
+.Old (1.x)
+[source,java]
+----
+SecurityDomain domain = new SimpleSecurityDomain(...);
+new VertxRequestHandler(vertx, deployment, contextPath, domain);
+----
+
+.New (2.x)
+[source,java]
+----
+SeBootstrap.Configuration config = SeBootstrap.Configuration.builder()
+    .property(RouterFactory.PROPERTY, (RouterFactory) vertx -> {
+        Router router = Router.router(vertx);
+        router.route().handler(BasicAuthHandler.create(authProvider));
+        return router;
+    })
+    .build();
+
+SeBootstrap.start(MyApplication.class, config);
+----
+
+=== Server: Removed Classes
+
+The following classes have been removed in 2.x:
+
+* `VertxJaxrsServer` -- replaced by `SeBootstrap` API
+* `VertxResteasyDeployment` -- standard `ResteasyDeploymentImpl` is used directly
+* `RequestDispatcher` -- logic merged into request handler
+* `VertxContainer` -- test utility replaced by `resteasy-junit-extension` / `SeBootstrap`
+* `VertxRegistry`, `VertxResourceFactory` -- no longer needed
+
+=== Client: Custom Vertx Instance
+
+Constructors that accepted a `Vertx` instance or `HttpClient` have been removed.
+To provide a custom `Vertx` instance, implement `VertxFactory` and register it via `ServiceLoader`:
+
+[source,java]
+----
+public class MyVertxFactory implements VertxFactory {
+    @Override
+    public Vertx create() {
+        return Vertx.vertx(new VertxOptions().setWorkerPoolSize(20));
+    }
+}
+----
+
+Register in `META-INF/services/dev.resteasy.vertx.api.VertxFactory`.
+
+=== Client: Property Constants Moved to VertxClientProperties
+
+Client configuration property constants have been moved from `VertxClientHttpEngine` to the new `VertxClientProperties` class.
+The request timeout property has also been renamed:
+
+.Client property changes
+[cols="2,2",options="header"]
+|===
+| Old | New
+
+| `VertxClientHttpEngine.REQUEST_TIMEOUT_MS` +
+(`io.vertx.core.Vertx$RequestTimeout`)
+| `VertxClientProperties.REQUEST_TIMEOUT` +
+(`dev.resteasy.vertx.client.request.timeout`)
+|===
+
+A new `VertxClientProperties.HTTP_CLIENT_OPTIONS` property allows passing custom Vert.x `HttpClientOptions` via the standard `ClientBuilder` API without casting to `ResteasyClientBuilder`.
+
+=== Shared Vertx Instance
+
+Both client and server now share a single managed `Vertx` instance via `VertxManager`.
+The instance is created lazily and shut down automatically.
+To customize instance creation, implement `VertxFactory` as described above.
+
+=== Vert.x Upgrade
+
+Vert.x has been upgraded from 4.x/5.0.x to 5.1.x.
+Netty dependencies are now managed transitively by Vert.x -- explicit Netty dependency declarations can be removed.
+
+=== CDI Support
+
+A new `resteasy-vertx-cdi` module provides CDI integration.
+See <<cdi>> for details.

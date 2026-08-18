@@ -92,7 +92,6 @@ public class VertxClientEngineTest {
         if (client == null) {
             client = ClientBuilder.newBuilder()
                     .scheduledExecutorService(executorService)
-                    .register(new VertxClientHttpEngine())
                     .build();
         }
         return client;
@@ -309,7 +308,7 @@ public class VertxClientEngineTest {
             Invocation.Builder property = client()
                     .target(baseUri())
                     .request()
-                    .property(VertxClientHttpEngine.REQUEST_TIMEOUT_MS, Duration.ofMillis(500));
+                    .property(VertxClientProperties.REQUEST_TIMEOUT, Duration.ofMillis(500));
             property
                     .get();
             fail();

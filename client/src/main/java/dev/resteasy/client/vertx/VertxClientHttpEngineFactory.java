@@ -25,35 +25,39 @@ import dev.resteasy.vertx.ssl.SslContextConverter;
 public class VertxClientHttpEngineFactory implements ClientHttpEngineFactory {
     @Override
     public AsyncClientHttpEngine asyncHttpClientEngine(final ClientBuilderConfiguration configuration) {
-        final HttpClientOptions options = new HttpClientOptions();
+        HttpClientOptions options = (HttpClientOptions) configuration.configuration()
+                .getProperty(VertxClientProperties.HTTP_CLIENT_OPTIONS);
 
-        final long connectionTimeout = configuration.connectionTimeout(TimeUnit.MILLISECONDS);
-        if (connectionTimeout > 0L) {
-            options.setConnectTimeout(Math.toIntExact(connectionTimeout));
-        }
+        if (options == null) {
+            options = new HttpClientOptions();
+            final long connectionTimeout = configuration.connectionTimeout(TimeUnit.MILLISECONDS);
+            if (connectionTimeout > 0L) {
+                options.setConnectTimeout(Math.toIntExact(connectionTimeout));
+            }
 
-        final long idleTimeout = configuration.connectionIdleTime(TimeUnit.SECONDS);
-        if (idleTimeout > 0L) {
-            options.setIdleTimeout(Math.toIntExact(idleTimeout));
-        }
+            final long idleTimeout = configuration.connectionIdleTime(TimeUnit.SECONDS);
+            if (idleTimeout > 0L) {
+                options.setIdleTimeout(Math.toIntExact(idleTimeout));
+            }
 
-        final String proxyHostname = configuration.defaultProxyHostname();
-        if (proxyHostname != null) {
-            final ProxyOptions proxyOptions = new ProxyOptions();
-            proxyOptions.setHost(proxyHostname);
-            proxyOptions.setPort(configuration.defaultProxyPort());
-            proxyOptions.setType(ProxyType.HTTP);
-            options.setProxyOptions(proxyOptions);
-        }
+            final String proxyHostname = configuration.defaultProxyHostname();
+            if (proxyHostname != null) {
+                final ProxyOptions proxyOptions = new ProxyOptions();
+                proxyOptions.setHost(proxyHostname);
+                proxyOptions.setPort(configuration.defaultProxyPort());
+                proxyOptions.setType(ProxyType.HTTP);
+                options.setProxyOptions(proxyOptions);
+            }
 
-        final long readTimeout = configuration.readTimeout(TimeUnit.SECONDS);
-        if (readTimeout > 0L) {
-            options.setReadIdleTimeout(Math.toIntExact(readTimeout));
-        }
+            final long readTimeout = configuration.readTimeout(TimeUnit.SECONDS);
+            if (readTimeout > 0L) {
+                options.setReadIdleTimeout(Math.toIntExact(readTimeout));
+            }
 
-        final SSLContext sslContext = configuration.sslContext();
-        if (sslContext != null) {
-            SslContextConverter.configureSsl(options, sslContext);
+            final SSLContext sslContext = configuration.sslContext();
+            if (sslContext != null) {
+                SslContextConverter.configureSsl(options, sslContext);
+            }
         }
 
         return new VertxClientHttpEngine(options, configuration);

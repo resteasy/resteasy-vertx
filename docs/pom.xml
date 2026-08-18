@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright The RESTEasy Authors
+  ~ SPDX-License-Identifier: Apache-2.0
+  -->
+
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>dev.resteasy.vertx</groupId>
+        <artifactId>resteasy-vertx-parent</artifactId>
+        <version>2.0.0.Beta2-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>resteasy-vertx-docs</artifactId>
+    <packaging>pom</packaging>
+    <name>RESTEasy Vert.x Reference Guide</name>
+    <description>Documentation for RESTEasy Vert.x</description>
+
+    <properties>
+        <!-- Skip deploying docs -->
+        <maven.deploy.skip>true</maven.deploy.skip>
+        <central.skipPublishing>true</central.skipPublishing>
+
+        <version.org.asciidoctor>3.2.0</version.org.asciidoctor>
+    </properties>
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-site-plugin</artifactId>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.asciidoctor</groupId>
+                <artifactId>asciidoctor-maven-plugin</artifactId>
+                <version>${version.org.asciidoctor}</version>
+                <configuration>
+                    <attributes>
+                        <project-version>${project.version}</project-version>
+                        <linkcss>false</linkcss>
+                    </attributes>
+                    <!-- We only want to process the index as it includes the other documents -->
+                    <sourceDocumentName>index.adoc</sourceDocumentName>
+                    <resources>
+                        <resource>
+                            <directory>${project.basedir}/src/main/asciidoc/images</directory>
+                            <targetPath>images</targetPath>
+                        </resource>
+                    </resources>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>output-html</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>process-asciidoc</goal>
+                        </goals>
+                        <configuration>
+                            <backend>html5</backend>
+                            <attributes>
+                                <toc>left</toc>
+                                <icons>font</icons>
+                                <sectanchors>true</sectanchors>
+                                <idprefix/>
+                                <idseparator>-</idseparator>
+                                <docinfo1>true</docinfo1>
+                            </attributes>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
