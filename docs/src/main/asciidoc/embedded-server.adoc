@@ -1,0 +1,157 @@
+[[embedded-server]]
+
+== Embedded Server
+
+The embedded server module integrates RESTEasy with the Vert.x HTTP server and Vert.x Web `Router`.
+It implements the `EmbeddedServer` interface for `SeBootstrap` integration and is automatically discovered via `ServiceLoader`.
+
+=== SeBootstrap Usage
+
+The recommended way to start the server is through the standard Jakarta REST `SeBootstrap` API:
+
+[source,java]
+----
+SeBootstrap.Configuration config = SeBootstrap.Configuration.builder()
+    .host("localhost")
+    .port(8080)
+    .rootPath("/api")
+    .build();
+
+SeBootstrap.Instance instance = SeBootstrap.start(MyApplication.class, config)
+    .toCompletableFuture()
+    .join();
+
+// Stop the server
+instance.stop().toCompletableFuture().join();
+----
+
+=== SSL/TLS
+
+HTTPS is enabled by setting the protocol to `"HTTPS"` and providing an `SSLContext`:
+
+[source,java]
+----
+SSLContext sslContext = SSLContext.getInstance("TLS");
+// ... initialize with KeyManager/TrustManager ...
+
+SeBootstrap.Configuration config = SeBootstrap.Configuration.builder()
+    .protocol("HTTPS")
+    .sslContext(sslContext)
+    .sslClientAuthentication(SSLClientAuthentication.OPTIONAL)
+    .host("localhost")
+    .port(8443)
+    .build();
+
+SeBootstrap.start(MyApplication.class, config);
+----
+
+Client authentication maps to Vert.x `ClientAuth` values:
+
+* `MANDATORY` -> `ClientAuth.REQUIRED`
+* `OPTIONAL` -> `ClientAuth.REQUEST`
+* `NONE` (default) -> `ClientAuth.NONE`
+
+If no `SSLContext` is provided, `SSLContext.getDefault()` is used.
+
+=== Vert.x Context Injection
+
+The server makes several Vert.x types available via `@Context` injection:
+
+* `io.vertx.core.Vertx` -- the shared Vert.x instance
+* `io.vertx.ext.web.RoutingContext` -- the routing context for the current request
+* `io.vertx.ext.web.Router` -- the Vert.x Web router
+
+[source,java]
+----
+@GET
+@Path("/info")
+@Produces(MediaType.TEXT_PLAIN)
+public String info(@Context io.vertx.core.Vertx vertx,
+                   @Context io.vertx.ext.web.RoutingContext routingContext,
+                   @Context io.vertx.ext.web.Router router) {
+    return "Running on Vert.x";
+}
+----
+
+=== Async Support
+
+Jakarta REST async responses are fully supported.
+The `Vertx` instance can be injected via `@Context` to use idiomatic Vert.x async patterns:
+
+[source,java]
+----
+@GET
+@Path("/async")
+@Produces(MediaType.TEXT_PLAIN)
+public void asyncGet(@Context Vertx vertx, @Suspended AsyncResponse asyncResponse) {
+    vertx.executeBlocking(() -> {
+        // Perform blocking work off the event loop
+        return "async result";
+    }).onSuccess(asyncResponse::resume)
+      .onFailure(asyncResponse::resume);
+}
+----
+
+=== Custom Router Factory
+
+The server uses a Vert.x Web `Router` for request handling.
+You can customize the router to add Vert.x Web middleware such as CORS handlers, session management, or authentication by providing a `RouterFactory`.
+
+==== Via SeBootstrap Configuration
+
+[source,java]
+----
+SeBootstrap.Configuration config = SeBootstrap.Configuration.builder()
+    .property(RouterFactory.PROPERTY, (RouterFactory) vertx -> {
+        Router router = Router.router(vertx);
+        router.route().handler(CorsHandler.create());
+        return router;
+    })
+    .build();
+
+SeBootstrap.start(MyApplication.class, config);
+----
+
+==== Via ServiceLoader
+
+Create a global default factory by implementing `RouterFactory` and registering it in `META-INF/services/dev.resteasy.vertx.api.RouterFactory`:
+
+[source,java]
+----
+public class MyRouterFactory implements RouterFactory {
+    @Override
+    public Router create(Vertx vertx) {
+        Router router = Router.router(vertx);
+        router.route().handler(CorsHandler.create());
+        return router;
+    }
+}
+----
+
+The resolution order is:
+
+. `RouterFactory` set on `SeBootstrap.Configuration` via the `RouterFactory.PROPERTY` property
+. `RouterFactory` discovered via `ServiceLoader`
+. Default factory that creates a plain `Router` via `Router.router(Vertx)`
+
+=== Request Forwarding
+
+Requests can be forwarded to a different path within the same server:
+
+[source,java]
+----
+@GET
+@Path("/old-path")
+public void forward(@Context HttpRequest request) {
+    request.forward("/new-path");
+}
+----
+
+The request body is preserved across forwards for POST and other methods with a body.
+
+=== Request Size Limits
+
+The maximum allowed request body size defaults to 10 MB.
+Requests exceeding this limit are rejected with HTTP 413 (Payload Too Large).
+This can be configured via the `dev.resteasy.vertx.server.max.request.size` system property.
+Set to `-1` to disable the limit.

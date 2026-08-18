@@ -67,12 +67,6 @@ public class VertxClientHttpEngine implements AsyncClientHttpEngine {
     private static final Logger LOGGER = Logger.getLogger(VertxClientHttpEngine.class);
 
     /**
-     * Client configuration property to set when a request timeout is needed.
-     * The value can be a {@link Duration}, {@link Number} (milliseconds), or a string parseable as a long.
-     */
-    public static final String REQUEST_TIMEOUT_MS = Vertx.class + "$RequestTimeout";
-
-    /**
      * Default buffer size for response body streams (4KB).
      * This balances memory usage with throughput for typical HTTP responses.
      */
@@ -204,9 +198,9 @@ public class VertxClientHttpEngine implements AsyncClientHttpEngine {
         }
         options.setURI(relativeUri);
 
-        if (request.getConfiguration().hasProperty(REQUEST_TIMEOUT_MS)) {
+        if (request.getConfiguration().hasProperty(VertxClientProperties.REQUEST_TIMEOUT)) {
             long timeoutMs = unwrapTimeout(
-                    request.getConfiguration().getProperty(REQUEST_TIMEOUT_MS));
+                    request.getConfiguration().getProperty(VertxClientProperties.REQUEST_TIMEOUT));
             if (timeoutMs > 0) {
                 options.setTimeout(timeoutMs);
             }

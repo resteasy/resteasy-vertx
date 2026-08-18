@@ -1,0 +1,109 @@
+[[getting-started]]
+
+== Getting Started
+
+=== Maven Dependencies
+
+Add the BOM to your project's dependency management section to align all RESTEasy Vert.x module versions:
+
+[source,xml,subs="attributes+"]
+----
+<dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>dev.resteasy.vertx</groupId>
+            <artifactId>resteasy-vertx-bom</artifactId>
+            <version>{project-version}</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+    </dependencies>
+</dependencyManagement>
+----
+
+Then add the modules you need:
+
+[source,xml]
+----
+<dependencies>
+    <!-- Embedded server -->
+    <dependency>
+        <groupId>dev.resteasy.vertx</groupId>
+        <artifactId>resteasy-vertx-embedded-server</artifactId>
+    </dependency>
+
+    <!-- Client engine -->
+    <dependency>
+        <groupId>dev.resteasy.vertx</groupId>
+        <artifactId>resteasy-vertx-client</artifactId>
+    </dependency>
+
+    <!-- CDI support (optional) -->
+    <dependency>
+        <groupId>dev.resteasy.vertx</groupId>
+        <artifactId>resteasy-vertx-cdi</artifactId>
+    </dependency>
+</dependencies>
+----
+
+=== Quick Start
+
+Start an embedded server using the standard Jakarta REST `SeBootstrap` API:
+
+[source,java]
+----
+@ApplicationPath("/api")
+public class MyApplication extends Application {
+    @Override
+    public Set<Class<?>> getClasses() {
+        return Set.of(GreetingResource.class);
+    }
+}
+
+SeBootstrap.Configuration config = SeBootstrap.Configuration.builder()
+    .host("localhost")
+    .port(8080)
+    .build();
+
+SeBootstrap.Instance instance = SeBootstrap.start(MyApplication.class, config)
+    .toCompletableFuture()
+    .join();
+
+URI uri = instance.configuration().baseUri();
+// Server running at http://localhost:8080/api
+----
+
+Create a client to call the running server:
+
+[source,java]
+----
+Client client = ClientBuilder.newClient();
+String result = client.target("http://localhost:8080/api/greeting")
+    .request(MediaType.TEXT_PLAIN)
+    .get(String.class);
+client.close();
+----
+
+The Vert.x client engine is automatically discovered via `ServiceLoader`.
+Both client and server share a single managed `Vertx` instance that is created lazily and shut down automatically.
+
+=== Custom Vertx Instance
+
+By default, a `Vertx` instance is created and managed automatically.
+To provide your own `Vertx` instance (for example, to reuse one from your existing application), implement the `VertxFactory` interface and register it via `ServiceLoader`:
+
+[source,java]
+----
+public class MyVertxFactory implements VertxFactory {
+    @Override
+    public Vertx create() {
+        return MyApplication.getSharedVertx();
+    }
+}
+----
+
+Register in `META-INF/services/dev.resteasy.vertx.api.VertxFactory`:
+
+----
+com.example.MyVertxFactory
+----

@@ -1,0 +1,112 @@
+[[client]]
+
+== Client Engine
+
+The client module provides a Vert.x-backed HTTP engine for the RESTEasy client.
+It implements `AsyncClientHttpEngine` and supports both synchronous and asynchronous invocations.
+
+=== Auto-Discovery
+
+The Vert.x client engine is automatically discovered via `ServiceLoader` when the `resteasy-vertx-client` artifact is on the classpath.
+No additional configuration is needed:
+
+[source,java]
+----
+Client client = ClientBuilder.newClient();
+String result = client.target("http://localhost:8080/api/greeting")
+    .request(MediaType.TEXT_PLAIN)
+    .get(String.class);
+client.close();
+----
+
+=== Features
+
+The Vert.x client engine provides:
+
+* HTTP/1.1 and HTTP/2 support
+* SSL/TLS (including native SSL engine)
+* Chunked transfer encoding for streaming request bodies
+* Connection pooling
+* Async invocations with `CompletableFuture`
+* Proxy support
+
+=== Async Invocations
+
+The engine supports reactive invocations via `CompletionStageRxInvoker`:
+
+[source,java]
+----
+Client client = ClientBuilder.newClient();
+CompletionStage<String> future = client.target("http://localhost:8080/api/greeting")
+    .request(MediaType.TEXT_PLAIN)
+    .rx()
+    .get(String.class);
+
+future.thenAccept(result -> System.out.println("Got: " + result));
+----
+
+=== Request Timeout
+
+A per-request timeout can be set using the `VertxClientProperties.REQUEST_TIMEOUT` property.
+The value can be a `Duration`, a `Number` (milliseconds), or a string parseable as a long:
+
+[source,java]
+----
+Client client = ClientBuilder.newClient();
+client.target("http://localhost:8080/api/slow")
+    .request()
+    .property(VertxClientProperties.REQUEST_TIMEOUT, Duration.ofSeconds(5))
+    .get(String.class);
+----
+
+=== SSL/TLS
+
+SSL is configured through the standard `ClientBuilder` API:
+
+[source,java]
+----
+SSLContext sslContext = SSLContext.getInstance("TLS");
+// ... initialize with KeyManager/TrustManager ...
+
+Client client = ClientBuilder.newBuilder()
+    .sslContext(sslContext)
+    .build();
+----
+
+=== Configuration via ClientBuilder
+
+When the engine is created via auto-discovery, the `VertxClientHttpEngineFactory` configures the Vert.x `HttpClientOptions` automatically from the `ClientBuilder` settings:
+
+* Connect timeout
+* Idle timeout
+* Read timeout
+* Proxy settings (HTTP proxy type)
+* SSL context
+
+[source,java]
+----
+Client client = ClientBuilder.newBuilder()
+    .connectTimeout(5, TimeUnit.SECONDS)
+    .readTimeout(30, TimeUnit.SECONDS)
+    .build();
+----
+
+=== Custom HttpClientOptions
+
+For full control over the Vert.x HTTP client configuration, pass custom `HttpClientOptions` via the `VertxClientProperties.HTTP_CLIENT_OPTIONS` property.
+
+NOTE: When custom `HttpClientOptions` are provided, standard `ClientBuilder` settings (timeouts, SSL context, proxy) are *not* applied.
+All configuration must be set directly on the provided options.
+
+[source,java]
+----
+HttpClientOptions options = new HttpClientOptions()
+    .setProtocolVersion(HttpVersion.HTTP_2)
+    .setUseAlpn(true)
+    .setConnectTimeout(5000)
+    .setSsl(true);
+
+Client client = ClientBuilder.newBuilder()
+    .property(VertxClientProperties.HTTP_CLIENT_OPTIONS, options)
+    .build();
+----

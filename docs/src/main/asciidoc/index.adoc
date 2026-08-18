@@ -1,0 +1,36 @@
+= RESTEasy Vert.x Reference Guide
+:doctype: book
+:sectnums:
+:toc: left
+:icons: font
+:experimental:
+:sourcedir: .
+
+== Introduction
+
+RESTEasy Vert.x provides integration between https://resteasy.dev[RESTEasy] and https://vertx.io[Eclipse Vert.x], bringing Jakarta RESTful Web Services to Vert.x's reactive, event-driven architecture.
+The project consists of several modules:
+
+* **resteasy-vertx-embedded-server** -- An embedded HTTP server using Vert.x Web and the standard `SeBootstrap` API
+* **resteasy-vertx-client** -- A RESTEasy client HTTP engine backed by the Vert.x HTTP client
+* **resteasy-vertx-api** -- Shared API types for managing the `Vertx` instance and configuration
+* **resteasy-vertx-cdi** -- CDI integration for automatic dependency injection in Jakarta REST resources
+
+=== Version Information
+
+This guide is for RESTEasy Vert.x version *{project-version}*.
+
+* link:apidocs/[Javadoc API Reference]
+* For the main RESTEasy documentation, see https://docs.resteasy.dev[docs.resteasy.dev].
+
+include::getting-started.adoc[]
+
+include::embedded-server.adoc[]
+
+include::client.adoc[]
+
+include::cdi.adoc[]
+
+include::configuration.adoc[]
+
+include::migration.adoc[]

@@ -1,0 +1,78 @@
+[[configuration]]
+
+== Configuration Reference
+
+=== System Properties
+
+Configuration options can be set via system properties or other configuration sources supported by RESTEasy's `Options` framework.
+
+.RESTEasy Vert.x configuration options
+[cols="3,1,1,3",options="header"]
+|===
+| System Property | Type | Default | Description
+
+| `dev.resteasy.vertx.timeout`
+| `Long`
+| `30`
+| Timeout value for blocking operations such as shutting down the `Vertx` instance.
+
+| `dev.resteasy.vertx.timeout.unit`
+| `TimeUnit`
+| `SECONDS`
+| Time unit for the timeout value.
+
+| `dev.resteasy.vertx.server.max.request.size`
+| `Long`
+| `10485760` (10 MB)
+| Maximum allowed request body size in bytes.
+Requests exceeding this limit are rejected with HTTP 413.
+Set to `-1` to disable.
+|===
+
+=== SeBootstrap Configuration Properties
+
+.Properties recognized on `SeBootstrap.Configuration`
+[cols="3,1,3",options="header"]
+|===
+| Property | Type | Description
+
+| `dev.resteasy.vertx.server.router.factory`
+| `RouterFactory`
+| Custom `RouterFactory` instance to create the Vert.x Web `Router`.
+See <<embedded-server>> for details.
+|===
+
+=== Client Configuration Properties
+
+.Properties recognized on `ClientBuilder` and `Invocation.Builder` (constants on `VertxClientProperties`)
+[cols="3,1,3",options="header"]
+|===
+| Property | Type | Description
+
+| `dev.resteasy.vertx.client.request.timeout`
+| `Duration`, `Number`, or `String`
+| Per-request timeout in milliseconds.
+
+| `dev.resteasy.vertx.client.http.options`
+| `HttpClientOptions`
+| Custom Vert.x `HttpClientOptions`.
+Standard `ClientBuilder` settings are applied on top.
+|===
+
+=== ServiceLoader Extension Points
+
+The following interfaces can be implemented and registered via `ServiceLoader` to customize behavior:
+
+.ServiceLoader extension points
+[cols="2,3",options="header"]
+|===
+| Interface | Description
+
+| `dev.resteasy.vertx.api.VertxFactory`
+| Factory for creating the `Vertx` instance.
+Used by the default `VertxManager` implementation.
+
+| `dev.resteasy.vertx.api.RouterFactory`
+| Factory for creating the Vert.x Web `Router`.
+Also configurable per-startup via `SeBootstrap.Configuration`.
+|===

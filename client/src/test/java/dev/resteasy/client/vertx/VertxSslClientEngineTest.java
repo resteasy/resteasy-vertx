@@ -23,28 +23,34 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import io.vertx.core.Vertx;
+import io.vertx.core.http.ClientAuth;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.http.HttpVersion;
-import io.vertx.core.net.SelfSignedCertificate;
 
+import dev.resteasy.junit.extension.annotations.SelfSignedCert;
+import dev.resteasy.junit.extension.annotations.SslCert;
+import dev.resteasy.junit.extension.api.SelfSignedCertificate;
+import dev.resteasy.vertx.ssl.SslContextConverter;
+
+@SelfSignedCert
 public class VertxSslClientEngineTest {
+    @SslCert
+    private SelfSignedCertificate certificate;
     private Vertx vertx;
     private HttpServer server;
     private ScheduledExecutorService executorService;
-    private SelfSignedCertificate certificate;
 
     @BeforeEach
     public void before() throws Exception {
         vertx = Vertx.vertx();
-        certificate = SelfSignedCertificate.create();
-        server = vertx.createHttpServer(new HttpServerOptions()
-                .setKeyCertOptions(certificate.keyCertOptions())
-                .setTrustOptions(certificate.trustOptions())
+        final HttpServerOptions serverOptions = new HttpServerOptions()
                 .setSsl(true)
-                .setUseAlpn(true));
+                .setUseAlpn(true);
+        SslContextConverter.configureSsl(serverOptions, certificate.serverSslContext(), ClientAuth.REQUIRED);
+        server = vertx.createHttpServer(serverOptions);
         executorService = Executors.newSingleThreadScheduledExecutor();
         server.requestHandler(req -> {
             final HttpServerResponse response = req.response();
@@ -73,9 +79,6 @@ public class VertxSslClientEngineTest {
         vertx.close().onComplete(ar -> latch.countDown());
         latch.await(2, TimeUnit.MINUTES);
         executorService.shutdownNow();
-        if (certificate != null) {
-            certificate.delete();
-        }
     }
 
     @Test
@@ -103,13 +106,12 @@ public class VertxSslClientEngineTest {
         return URI.create("https://localhost:" + server.actualPort());
     }
 
-    private Client createClient(final HttpClientOptions options) throws Exception {
-        options.setKeyCertOptions(certificate.keyCertOptions())
-                .setTrustOptions(certificate.trustOptions())
-                .setSsl(true);
+    private Client createClient(final HttpClientOptions options) {
+        options.setSsl(true);
+        SslContextConverter.configureSsl(options, certificate.clientSslContext());
         return ClientBuilder.newBuilder()
                 .scheduledExecutorService(executorService)
-                .register(new VertxClientHttpEngine(options))
+                .property(VertxClientProperties.HTTP_CLIENT_OPTIONS, options)
                 .build();
     }
 }

@@ -4,8 +4,6 @@
  */
 package dev.resteasy.server.vertx.async;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.concurrent.TimeUnit;
 
 import jakarta.ws.rs.GET;
@@ -14,38 +12,23 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.container.AsyncResponse;
 import jakarta.ws.rs.container.Suspended;
+import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
-import org.jboss.logging.Logger;
+import io.vertx.core.Vertx;
 
-/**
- * @author <a href="mailto:bill@burkecentral.com">Bill Burke</a>
- * @version $Revision: 1 $
- */
 @Path("/async")
 public class AsyncResource {
     @GET
     @Produces("text/plain")
-    public void get(@Suspended final AsyncResponse response) {
+    public void get(@Context final Vertx vertx, @Suspended final AsyncResponse response) {
         response.setTimeout(2000, TimeUnit.MILLISECONDS);
-        Thread t = new Thread() {
-            private Logger log = Logger.getLogger(AsyncResource.class);
-
-            @Override
-            public void run() {
-                try {
-                    Thread.sleep(100);
-                    Response jaxrs = Response.ok("hello").type(MediaType.TEXT_PLAIN).build();
-                    response.resume(jaxrs);
-                } catch (Exception e) {
-                    StringWriter errors = new StringWriter();
-                    e.printStackTrace(new PrintWriter(errors));
-                    log.error(errors.toString());
-                }
-            }
-        };
-        t.start();
+        vertx.executeBlocking(() -> {
+            Thread.sleep(100);
+            return Response.ok("hello").type(MediaType.TEXT_PLAIN).build();
+        }, false).onSuccess(response::resume)
+                .onFailure(response::resume);
     }
 
     @GET
@@ -58,24 +41,12 @@ public class AsyncResource {
     @GET
     @Path("timeout")
     @Produces("text/plain")
-    public void timeout(@Suspended final AsyncResponse response) {
+    public void timeout(@Context final Vertx vertx, @Suspended final AsyncResponse response) {
         response.setTimeout(10, TimeUnit.MILLISECONDS);
-        Thread t = new Thread() {
-            private Logger log = Logger.getLogger(AsyncResource.class);
-
-            @Override
-            public void run() {
-                try {
-                    Thread.sleep(100000);
-                    Response jaxrs = Response.ok("goodbye").type(MediaType.TEXT_PLAIN).build();
-                    response.resume(jaxrs);
-                } catch (Exception e) {
-                    StringWriter errors = new StringWriter();
-                    e.printStackTrace(new PrintWriter(errors));
-                    log.error(errors.toString());
-                }
-            }
-        };
-        t.start();
+        vertx.executeBlocking(() -> {
+            Thread.sleep(1000);
+            return Response.ok("goodbye").type(MediaType.TEXT_PLAIN).build();
+        }, false).onSuccess(response::resume)
+                .onFailure(response::resume);
     }
 }

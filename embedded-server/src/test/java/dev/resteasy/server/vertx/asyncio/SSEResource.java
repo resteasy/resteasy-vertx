@@ -15,6 +15,8 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.sse.Sse;
 import jakarta.ws.rs.sse.SseEventSink;
 
+import io.vertx.core.Vertx;
+
 @Path("close")
 public class SSEResource {
 
@@ -34,39 +36,37 @@ public class SSEResource {
     @GET
     @Path("send")
     @Produces(MediaType.SERVER_SENT_EVENTS)
-    public void send(@Context SseEventSink sink, @Context Sse sse) {
-        Thread t = new Thread(new Runnable() {
-            public void run() {
+    public void send(@Context Vertx vertx, @Context SseEventSink sink, @Context Sse sse) {
+        vertx.executeBlocking(() -> {
+            try {
+                SseEventSink s = sink;
+                s.send(sse.newEvent("HELLO"));
+                s.close();
+                isClosed = s.isClosed();
+                if (!isClosed)
+                    return null;
+                s.close();
+                isClosed = s.isClosed();
+                if (!isClosed)
+                    return null;
+                s.close();
+                isClosed = s.isClosed();
+                if (!isClosed)
+                    return null;
                 try {
-                    SseEventSink s = sink;
-                    s.send(sse.newEvent("HELLO"));
-                    s.close();
-                    isClosed = s.isClosed();
-                    if (!isClosed)
-                        return;
-                    s.close();
-                    isClosed = s.isClosed();
-                    if (!isClosed)
-                        return;
-                    s.close();
-                    isClosed = s.isClosed();
-                    if (!isClosed)
-                        return;
-                    try {
-                        s.send(sse.newEvent("SOMETHING")).exceptionally(t -> {
-                            if (t instanceof IllegalStateException)
-                                exception = true;
-                            return null;
-                        });
-                    } catch (IllegalStateException ise) {
-                        exception = true;
-                    }
-                } catch (IOException e) {
-                    throw new UncheckedIOException(e);
+                    s.send(sse.newEvent("SOMETHING")).exceptionally(t -> {
+                        if (t instanceof IllegalStateException)
+                            exception = true;
+                        return null;
+                    });
+                } catch (IllegalStateException ise) {
+                    exception = true;
                 }
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
             }
-        });
-        t.start();
+            return null;
+        }).onFailure(t -> exception = true);
     }
 
     @GET
