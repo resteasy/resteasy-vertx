@@ -45,6 +45,7 @@ public final class SslContextConverter {
     public static void configureSsl(final HttpServerOptions options, final SSLContext sslContext,
             final ClientAuth clientAuth) {
         options.setSsl(true)
+                .setUseAlpn(true)
                 .setKeyCertOptions(new SslContextKeyCertOptions())
                 .setClientAuth(clientAuth)
                 .setSslEngineOptions(createEngineOptions(sslContext));
