@@ -1,0 +1,19 @@
+/*
+ * Copyright The RESTEasy Authors
+ * SPDX-License-Identifier: Apache-2.0
+ */
+package dev.resteasy.vertx.server.async;
+
+import jakarta.annotation.Priority;
+import jakarta.ws.rs.container.PreMatching;
+import jakarta.ws.rs.ext.Provider;
+
+@PreMatching
+@Priority(1)
+@Provider
+public class AsyncPreMatchRequestFilter1 extends AsyncRequestFilter {
+
+    public AsyncPreMatchRequestFilter1() {
+        super("PreMatchFilter1");
+    }
+}

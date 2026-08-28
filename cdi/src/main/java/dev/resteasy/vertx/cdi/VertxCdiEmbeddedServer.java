@@ -5,13 +5,12 @@
 package dev.resteasy.vertx.cdi;
 
 import jakarta.annotation.Priority;
-import jakarta.enterprise.inject.spi.CDI;
 
 import org.jboss.resteasy.plugins.server.embedded.EmbeddedServer;
 
 import io.vertx.ext.web.Route;
 
-import dev.resteasy.server.vertx.VertxEmbeddedServer;
+import dev.resteasy.vertx.server.VertxEmbeddedServer;
 
 /**
  * A CDI-aware {@link EmbeddedServer} implementation that wraps the {@link VertxEmbeddedServer}.

@@ -15,10 +15,10 @@ All packages have been renamed to align with the new group ID `dev.resteasy.vert
 | Old Package | New Package
 
 | `org.jboss.resteasy.client.jaxrs.engines.vertx`
-| `dev.resteasy.client.vertx`
+| `dev.resteasy.vertx.client`
 
 | `org.jboss.resteasy.plugins.server.vertx`
-| `dev.resteasy.server.vertx`
+| `dev.resteasy.vertx.server`
 |===
 
 Update all import statements in your code accordingly.

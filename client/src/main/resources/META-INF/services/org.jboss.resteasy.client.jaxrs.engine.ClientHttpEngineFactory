@@ -3,4 +3,4 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-dev.resteasy.client.vertx.VertxClientHttpEngineFactory
+dev.resteasy.vertx.client.VertxClientHttpEngineFactory
