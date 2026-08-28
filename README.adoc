@@ -122,45 +122,61 @@ By default the release version cannot contain `SNAPSHOT` and the development ver
 === Supported Arguments
 
 |===
-|Argument | Requires Value | Description
+| Argument                                                                                                          | Requires Value | Description
 
 | `-d`, `--development`
+
 | Yes
+
 | The next version for the development cycle.
 
 | `-f`, `--force`
+
 | No
+
 | Forces to allow a SNAPSHOT suffix in release version and not require one for the development version.
 
 | `-h`, `--help`
+
 | N/A
+
 | Displays this help
 
 | `--notes-start-tag`
+
 | Unused
+
 | Passes the `--notes-from-tag` and the argument to the `gh create release` command.
 
 | `-p`, `--prerelease`
+
 | Unused
+
 | Passes the `--prerelease` to the `gh create release` command.
 
 | `-r`, `--release`
+
 | Yes
+
 | The version to be released. Also used for the tag.
 
 | `--dry-run`
+
 | No
+
 | Executes the release in as a dry-run. Nothing will be updated or pushed.
 
 | `--no-push`
+
 | No
+
 | Executes the release in, but doesn't actually push the changes to GitHub or publish the release on Maven Central.
-Any next steps should you want to continue the release will need to be manual.
 
 | `-v`, `--verbose`
-| No
-| Prints verbose output.
 
+| No
+
+| Prints verbose output.
 |===
 
 Any additional arguments are considered arguments for the Maven command.
