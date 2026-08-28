@@ -100,7 +100,7 @@
 
         <!-- maven-release-plugin configuration -->
         <autoVersionSubmodules>true</autoVersionSubmodules>
-        <releaseProfiles>release</releaseProfiles>
+        <releaseProfiles>central-release</releaseProfiles>
         <signTag>true</signTag>
         <tagNameFormat>v@{project.version}</tagNameFormat>
         <arguments>-DskipTests</arguments>
