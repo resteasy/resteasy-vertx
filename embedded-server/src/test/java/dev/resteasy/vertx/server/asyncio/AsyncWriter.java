@@ -1,0 +1,57 @@
+/*
+ * Copyright The RESTEasy Authors
+ * SPDX-License-Identifier: Apache-2.0
+ */
+package dev.resteasy.vertx.server.asyncio;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Type;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
+
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.ext.Provider;
+
+import org.jboss.resteasy.spi.AsyncMessageBodyWriter;
+import org.jboss.resteasy.spi.AsyncOutputStream;
+
+@Provider
+public class AsyncWriter implements AsyncMessageBodyWriter<AsyncWriterData> {
+
+    @Override
+    public boolean isWriteable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
+        return type == AsyncWriterData.class;
+    }
+
+    @Override
+    public void writeTo(AsyncWriterData t, Class<?> type, Type genericType, Annotation[] annotations,
+            MediaType mediaType, MultivaluedMap<String, Object> httpHeaders, OutputStream entityStream)
+            throws IOException, WebApplicationException {
+        entityStream.write("KO".getBytes(Charset.forName("UTF-8")));
+        entityStream.close();
+    }
+
+    @Override
+    public CompletionStage<Void> asyncWriteTo(AsyncWriterData t, Class<?> type, Type genericType,
+            Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, Object> httpHeaders,
+            AsyncOutputStream entityStream) {
+        CompletionStage<Void> start = t.simulateSlowIo
+                ? CompletableFuture.runAsync(() -> {
+                    try {
+                        Thread.sleep(50L);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                })
+                : CompletableFuture.completedFuture(null);
+        return start.thenCompose(v -> entityStream.asyncWrite(t.expectedValue.getBytes(StandardCharsets.UTF_8)))
+                .thenCompose(v -> entityStream.asyncFlush());
+    }
+
+}
