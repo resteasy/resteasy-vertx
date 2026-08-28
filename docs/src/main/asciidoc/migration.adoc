@@ -12,7 +12,8 @@ All packages have been renamed to align with the new group ID `dev.resteasy.vert
 .Package name changes
 [cols="2,2",options="header"]
 |===
-| Old Package | New Package
+| Old Package
+| New Package
 
 | `org.jboss.resteasy.client.jaxrs.engines.vertx`
 | `dev.resteasy.vertx.client`
@@ -123,12 +124,11 @@ The request timeout property has also been renamed:
 .Client property changes
 [cols="2,2",options="header"]
 |===
-| Old | New
+| Old
+| New
 
 | `VertxClientHttpEngine.REQUEST_TIMEOUT_MS` +
-(`io.vertx.core.Vertx$RequestTimeout`)
 | `VertxClientProperties.REQUEST_TIMEOUT` +
-(`dev.resteasy.vertx.client.request.timeout`)
 |===
 
 A new `VertxClientProperties.HTTP_CLIENT_OPTIONS` property allows passing custom Vert.x `HttpClientOptions` via the standard `ClientBuilder` API without casting to `ResteasyClientBuilder`.
