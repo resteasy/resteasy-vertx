@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package dev.resteasy.vertx.api;
+package dev.resteasy.vertx.server.api;
 
 import jakarta.ws.rs.SeBootstrap;
 
@@ -43,7 +43,7 @@ import dev.resteasy.vertx.VertxManager;
  * <h2>ServiceLoader</h2>
  * <p>
  * A global default factory can be registered by placing a file named
- * {@code META-INF/services/dev.resteasy.vertx.api.RouterFactory} on the classpath containing the
+ * {@code META-INF/services/dev.resteasy.vertx.server.api.RouterFactory} on the classpath containing the
  * fully qualified class name of the implementation:
  * </p>
  *

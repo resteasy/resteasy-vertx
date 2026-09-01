@@ -75,6 +75,6 @@ The following interfaces can be implemented and registered via `ServiceLoader` t
 | `dev.resteasy.vertx.api.VertxFactory`
 | Factory for creating the `Vertx` instance.
 
-| `dev.resteasy.vertx.api.RouterFactory`
+| `dev.resteasy.vertx.server.api.RouterFactory`
 | Factory for creating the Vert.x Web `Router`.
 |===
