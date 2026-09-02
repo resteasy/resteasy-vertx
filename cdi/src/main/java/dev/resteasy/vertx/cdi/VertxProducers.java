@@ -9,6 +9,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.enterprise.inject.Disposes;
 import jakarta.enterprise.inject.Produces;
+import jakarta.inject.Singleton;
 
 import org.jboss.resteasy.core.ResteasyContext;
 
@@ -26,7 +27,7 @@ import dev.resteasy.vertx.VertxManager;
 public class VertxProducers {
 
     @Produces
-    @ApplicationScoped
+    @Singleton
     public Vertx vertx() {
         return VertxManager.get().vertx();
     }

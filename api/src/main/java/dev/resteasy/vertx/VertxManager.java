@@ -9,7 +9,7 @@ import java.util.ServiceLoader;
 
 import io.vertx.core.Vertx;
 
-import dev.resteasy.vertx.api.VertxFactory;
+import dev.resteasy.vertx.spi.VertxFactory;
 
 /**
  * Manages a shared {@link Vertx} instance across consumers within the same JVM.

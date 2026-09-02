@@ -69,20 +69,13 @@
             <groupId>org.jboss.resteasy</groupId>
             <artifactId>resteasy-core</artifactId>
         </dependency>
-
-        <!-- Test dependencies -->
+        <!-- Required on the module path: resteasy-core reads jakarta.annotation -->
         <dependency>
             <groupId>jakarta.annotation</groupId>
             <artifactId>jakarta.annotation-api</artifactId>
-            <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>io.vertx</groupId>
-            <artifactId>vertx-core</artifactId>
-            <classifier>tests</classifier>
-            <scope>test</scope>
-            <type>test-jar</type>
-        </dependency>
+
+        <!-- Test dependencies -->
         <dependency>
             <groupId>dev.resteasy.junit.extension</groupId>
             <artifactId>resteasy-junit-extension</artifactId>
@@ -167,6 +160,12 @@
                 <configuration>
                     <dependenciesToScan>org.jboss.resteasy:resteasy-embedded-server-tests</dependenciesToScan>
                     <excludedGroups>cdi</excludedGroups>
+                    <!-- We cannot use a modular class path because of the way that surefire patches the module path. We
+                         have tests in different packages that we cannot open in the default module descriptor.
+                         Specifically the dev.resteasy.vertx.server.async and dev.resteasy.vertx.server.asyncio
+                         test-only packages.
+                     -->
+                    <useModulePath>false</useModulePath>
                 </configuration>
             </plugin>
         </plugins>

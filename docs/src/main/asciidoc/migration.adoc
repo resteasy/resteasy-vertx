@@ -114,7 +114,7 @@ public class MyVertxFactory implements VertxFactory {
 }
 ----
 
-Register in `META-INF/services/dev.resteasy.vertx.api.VertxFactory`.
+Register in `META-INF/services/dev.resteasy.vertx.spi.VertxFactory`.
 
 === Client: Property Constants Moved to VertxClientProperties
 
@@ -127,8 +127,10 @@ The request timeout property has also been renamed:
 | Old
 | New
 
-| `VertxClientHttpEngine.REQUEST_TIMEOUT_MS` +
-| `VertxClientProperties.REQUEST_TIMEOUT` +
+a| `VertxClientHttpEngine.REQUEST_TIMEOUT_MS` +
+(`io.vertx.core.Vertx$RequestTimeout`)
+a| `VertxClientProperties.REQUEST_TIMEOUT` +
+(`dev.resteasy.vertx.client.request.timeout`)
 |===
 
 A new `VertxClientProperties.HTTP_CLIENT_OPTIONS` property allows passing custom Vert.x `HttpClientOptions` via the standard `ClientBuilder` API without casting to `ResteasyClientBuilder`.

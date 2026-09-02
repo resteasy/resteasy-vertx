@@ -28,7 +28,7 @@ import dev.resteasy.junit.extension.annotations.RequestPath;
 import dev.resteasy.junit.extension.annotations.RestBootstrap;
 import dev.resteasy.junit.extension.annotations.RestResource;
 import dev.resteasy.junit.extension.api.ConfigurationProvider;
-import dev.resteasy.vertx.api.RouterFactory;
+import dev.resteasy.vertx.server.spi.RouterFactory;
 
 @RestBootstrap(value = { VertxWebTest.ForwardResource.class, VertxWebTest.TargetResource.class,
         VertxWebTest.PostForwardResource.class, VertxWebTest.PostTargetResource.class,

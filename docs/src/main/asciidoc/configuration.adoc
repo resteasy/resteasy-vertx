@@ -27,7 +27,9 @@ Configuration options can be set via system properties or other configuration so
 | `dev.resteasy.vertx.server.max.request.size`
 | `Long`
 | `10485760` (10 MB)
-| Maximum allowed request body size in bytes.
+a| Maximum allowed request body size in bytes.
+Requests exceeding this limit are rejected with HTTP 413.
+Set to `-1` to disable.
 |===
 
 === SeBootstrap Configuration Properties
@@ -41,7 +43,8 @@ Configuration options can be set via system properties or other configuration so
 
 | `dev.resteasy.vertx.server.router.factory`
 | `RouterFactory`
-| Custom `RouterFactory` instance to create the Vert.x Web `Router`.
+a| Custom `RouterFactory` instance to create the Vert.x Web `Router`.
+See <<embedded-server>> for details.
 |===
 
 === Client Configuration Properties
@@ -59,7 +62,8 @@ Configuration options can be set via system properties or other configuration so
 
 | `dev.resteasy.vertx.client.http.options`
 | `HttpClientOptions`
-| Custom Vert.x `HttpClientOptions`.
+a| Custom Vert.x `HttpClientOptions`.
+Standard `ClientBuilder` settings are applied on top.
 |===
 
 === ServiceLoader Extension Points
@@ -72,9 +76,11 @@ The following interfaces can be implemented and registered via `ServiceLoader` t
 | Interface
 | Description
 
-| `dev.resteasy.vertx.api.VertxFactory`
-| Factory for creating the `Vertx` instance.
+| `dev.resteasy.vertx.spi.VertxFactory`
+a| Factory for creating the `Vertx` instance.
+Used by the default `VertxManager` implementation.
 
-| `dev.resteasy.vertx.api.RouterFactory`
-| Factory for creating the Vert.x Web `Router`.
+| `dev.resteasy.vertx.server.spi.RouterFactory`
+a| Factory for creating the Vert.x Web `Router`.
+Also configurable per-startup via `SeBootstrap.Configuration`.
 |===
