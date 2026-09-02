@@ -100,4 +100,18 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <!-- The io.vertx:vertx-core::tests dependency requires a dependency on junit which we do not use.
+                         We just use a non-modular class path to avoid requiring the test dependency.
+                     -->
+                    <useModulePath>false</useModulePath>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>

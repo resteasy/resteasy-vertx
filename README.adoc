@@ -111,12 +111,10 @@ Once everything is setup, you simply need to run the `./release.sh` script. Ther
 
 By default the release version cannot contain `SNAPSHOT` and the development version, must container `SNAPSHOT`.
 
+.Example Command
 [source,bash]
 ----
-.Example Command
-----
 ./release -r 1.0.0.Final -d 1.0.1.Final-SNAPSHOT
-----
 ----
 
 === Supported Arguments
@@ -170,7 +168,8 @@ By default the release version cannot contain `SNAPSHOT` and the development ver
 
 | No
 
-| Executes the release in, but doesn't actually push the changes to GitHub or publish the release on Maven Central.
+a| Executes the release in, but doesn't actually push the changes to GitHub or publish the release on Maven Central.
+Any next steps should you want to continue the release will need to be manual.
 
 | `-v`, `--verbose`
 
