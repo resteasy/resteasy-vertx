@@ -34,13 +34,13 @@ module dev.resteasy.vertx.server {
 
     // Exports
     exports dev.resteasy.vertx.server to dev.resteasy.vertx.cdi, org.jboss.resteasy.core;
-    exports dev.resteasy.vertx.server.api;
+    exports dev.resteasy.vertx.server.spi;
 
     // Opens
     opens dev.resteasy.vertx.server to org.jboss.resteasy.spi;
 
     // Service consumers
-    uses dev.resteasy.vertx.server.api.RouterFactory;
+    uses dev.resteasy.vertx.server.spi.RouterFactory;
 
     // Provides
     provides org.jboss.resteasy.plugins.server.embedded.EmbeddedServer with

@@ -32,7 +32,7 @@ import io.vertx.ext.web.Router;
 import dev.resteasy.vertx.VertxManager;
 import dev.resteasy.vertx.config.ResteasyVertxOptions;
 import dev.resteasy.vertx.server._private.VertxLogger;
-import dev.resteasy.vertx.server.api.RouterFactory;
+import dev.resteasy.vertx.server.spi.RouterFactory;
 import dev.resteasy.vertx.ssl.SslContextConverter;
 
 /**

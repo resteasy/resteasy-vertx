@@ -15,8 +15,8 @@ import java.util.concurrent.locks.ReentrantLock;
 import io.vertx.core.Vertx;
 
 import dev.resteasy.vertx._private.VertxMessages;
-import dev.resteasy.vertx.api.VertxFactory;
 import dev.resteasy.vertx.config.ResteasyVertxOptions;
+import dev.resteasy.vertx.spi.VertxFactory;
 
 /**
  * Default {@link VertxManager} implementation that creates the {@link Vertx} instance via a {@link VertxFactory}

@@ -13,15 +13,15 @@
  *
  * <h2>SPI Interfaces</h2>
  * <ul>
- * <li>{@link dev.resteasy.vertx.server.api.RouterFactory RouterFactory} - Creates the
+ * <li>{@link dev.resteasy.vertx.server.spi.RouterFactory RouterFactory} - Creates the
  * {@link io.vertx.ext.web.Router} used by the server</li>
  * </ul>
  *
  * <h2>Registration</h2>
  * <p>
- * A {@link dev.resteasy.vertx.server.api.RouterFactory} may be supplied per startup via the
+ * A {@link dev.resteasy.vertx.server.spi.RouterFactory} may be supplied per startup via the
  * {@link jakarta.ws.rs.SeBootstrap.Configuration} property
- * {@link dev.resteasy.vertx.server.api.RouterFactory#PROPERTY}, or globally via Java's
+ * {@link dev.resteasy.vertx.server.spi.RouterFactory#PROPERTY}, or globally via Java's
  * {@link java.util.ServiceLoader}. When neither is present the server uses a plain
  * {@link io.vertx.ext.web.Router#router(io.vertx.core.Vertx)}.
  * </p>
@@ -41,4 +41,4 @@
  *
  * @since 2.0
  */
-package dev.resteasy.vertx.server.api;
+package dev.resteasy.vertx.server.spi;

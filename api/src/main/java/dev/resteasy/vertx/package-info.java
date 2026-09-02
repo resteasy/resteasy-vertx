@@ -14,11 +14,11 @@
  * integration through the public API in:
  * </p>
  * <ul>
- * <li>{@link dev.resteasy.vertx.api} - Extension points and SPI</li>
+ * <li>{@link dev.resteasy.vertx.spi} - Extension points and SPI</li>
  * <li>{@link dev.resteasy.vertx.config} - Configuration options</li>
  * </ul>
  *
- * @see dev.resteasy.vertx.api
+ * @see dev.resteasy.vertx.spi
  * @since 2.0
  */
 package dev.resteasy.vertx;

@@ -15,10 +15,10 @@
  * through the standard Jakarta REST {@link jakarta.ws.rs.SeBootstrap} API and customize it through the public SPI in:
  * </p>
  * <ul>
- * <li>{@link dev.resteasy.vertx.server.api} - Router customization SPI</li>
+ * <li>{@link dev.resteasy.vertx.server.spi} - Router customization SPI</li>
  * </ul>
  *
- * @see dev.resteasy.vertx.server.api
+ * @see dev.resteasy.vertx.server.spi
  * @since 2.0
  */
 package dev.resteasy.vertx.server;

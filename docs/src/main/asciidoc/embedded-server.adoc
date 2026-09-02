@@ -114,7 +114,7 @@ SeBootstrap.start(MyApplication.class, config);
 
 ==== Via ServiceLoader
 
-Create a global default factory by implementing `RouterFactory` and registering it in `META-INF/services/dev.resteasy.vertx.server.api.RouterFactory`:
+Create a global default factory by implementing `RouterFactory` and registering it in `META-INF/services/dev.resteasy.vertx.server.spi.RouterFactory`:
 
 [source,java]
 ----

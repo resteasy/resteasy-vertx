@@ -30,7 +30,7 @@ module dev.resteasy.vertx {
     requires org.jboss.resteasy.spi;
 
     // Exports
-    exports dev.resteasy.vertx.api;
+    exports dev.resteasy.vertx.spi;
     exports dev.resteasy.vertx.config;
     exports dev.resteasy.vertx.ssl;
 
@@ -39,5 +39,5 @@ module dev.resteasy.vertx {
 
     // Service consumers
     uses dev.resteasy.vertx.VertxManager;
-    uses dev.resteasy.vertx.api.VertxFactory;
+    uses dev.resteasy.vertx.spi.VertxFactory;
 }

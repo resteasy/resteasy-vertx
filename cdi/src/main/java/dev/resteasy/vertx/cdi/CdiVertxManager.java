@@ -12,16 +12,14 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import jakarta.enterprise.inject.spi.CDI;
-
 import org.jboss.logging.Logger;
 import org.jboss.weld.context.bound.BoundRequestContext;
 
 import io.vertx.core.Vertx;
 
 import dev.resteasy.vertx.VertxManager;
-import dev.resteasy.vertx.api.VertxFactory;
 import dev.resteasy.vertx.config.ResteasyVertxOptions;
+import dev.resteasy.vertx.spi.VertxFactory;
 
 /**
  * A CDI-aware {@link VertxManager} implementation that wraps the {@link Vertx} instance with CDI context propagation.

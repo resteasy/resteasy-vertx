@@ -102,7 +102,7 @@ public class MyVertxFactory implements VertxFactory {
 }
 ----
 
-Register in `META-INF/services/dev.resteasy.vertx.api.VertxFactory`:
+Register in `META-INF/services/dev.resteasy.vertx.spi.VertxFactory`:
 
 ----
 com.example.MyVertxFactory

@@ -53,7 +53,7 @@ import io.vertx.core.net.TcpServerConfig;
 import io.vertx.core.shareddata.SharedData;
 import io.vertx.core.spi.VerticleFactory;
 
-import dev.resteasy.vertx.api.VertxFactory;
+import dev.resteasy.vertx.spi.VertxFactory;
 
 /**
  *

@@ -23,7 +23,7 @@ import dev.resteasy.junit.extension.annotations.RequestPath;
 import dev.resteasy.junit.extension.annotations.RestBootstrap;
 import dev.resteasy.junit.extension.annotations.RestResource;
 import dev.resteasy.junit.extension.api.ConfigurationProvider;
-import dev.resteasy.vertx.server.api.RouterFactory;
+import dev.resteasy.vertx.server.spi.RouterFactory;
 
 /**
  * Simple smoke test to ensure the module descriptors work as expected.

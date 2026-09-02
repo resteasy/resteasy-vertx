@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package dev.resteasy.vertx.api;
+package dev.resteasy.vertx.spi;
 
 import io.vertx.core.Vertx;
 
@@ -17,7 +17,7 @@ import dev.resteasy.vertx.VertxManager;
  * </p>
  * <p>
  * A custom implementation can be registered by placing a file named
- * {@code META-INF/services/dev.resteasy.vertx.api.VertxFactory} on the classpath containing the
+ * {@code META-INF/services/dev.resteasy.vertx.spi.VertxFactory} on the classpath containing the
  * fully qualified class name of the implementation. For example, to reuse an existing {@link Vertx} instance:
  * </p>
  *

@@ -44,7 +44,7 @@ module dev.resteasy.vertx.cdi {
     opens dev.resteasy.vertx.cdi;
 
     // Service consumers
-    uses dev.resteasy.vertx.api.VertxFactory;
+    uses dev.resteasy.vertx.spi.VertxFactory;
 
     // Provides
     provides dev.resteasy.vertx.VertxManager with
