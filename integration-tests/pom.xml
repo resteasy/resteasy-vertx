@@ -84,23 +84,10 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
                     <!--
-                      Weld generates CDI client proxies for normal-scoped producers of Vert.x types
-                      (RoutingContext, Router). On the module path each proxy is defined into the type's own
-                      package, so Weld needs that package opened (to define the class) and the owning module
-                      needs to read weld.core.impl (so the defined proxy can link its Weld superinterfaces,
-                      e.g. LifecycleMixin/WeldClientProxy). jakarta.* and java.* types avoid this because Weld
-                      relocates their proxies into its own module; foreign types like io.vertx.* do not.
-
                       The reads for the org.jboss.cdi module can be removed once https://redhat.atlassian.net/browse/RESTEASY-3794
                       is resolved.
                     -->
                     <argLine>
-                        --add-opens io.vertx.core/io.vertx.core=weld.core.impl
-                        --add-opens io.vertx.web/io.vertx.ext.web=weld.core.impl
-                        --add-reads io.vertx.core=weld.core.impl
-                        --add-reads io.vertx.web=weld.core.impl
-                        --add-reads io.vertx.core=weld.api
-                        --add-reads io.vertx.web=weld.api
                         --add-reads org.jboss.resteasy.cdi=weld.api
                         --add-reads org.jboss.resteasy.cdi=weld.core.impl
                     </argLine>

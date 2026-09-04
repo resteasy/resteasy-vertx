@@ -21,6 +21,8 @@ module dev.resteasy.vertx.cdi {
     // Third-party dependencies
     requires io.vertx.core;
     requires io.vertx.web;
+    // Required for DelegateRoutingContext. This can be removed if the delegate gets removed
+    requires io.vertx.auth.common;
     requires org.jboss.logging;
     // Weld does not yet ship module-info descriptors; these are automatic module names derived from the jars.
     // weld.api and weld.core.impl are transitive: Weld generates client proxies for a consumer's normal-scoped

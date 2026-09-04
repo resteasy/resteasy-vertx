@@ -24,35 +24,37 @@ import dev.resteasy.vertx.VertxManager;
  * @author <a href="mailto:jperkins@ibm.com">James R. Perkins</a>
  */
 @ApplicationScoped
-public class VertxProducers {
+class VertxProducers {
 
     @Produces
     @Singleton
-    public Vertx vertx() {
+    Vertx vertx() {
         return VertxManager.get().vertx();
     }
 
     @Produces
     @RequestScoped
-    public RoutingContext routingContext() {
+    // Return a concrete type within this package. See the Javadoc on the delegate for details.
+    DelegateRoutingContext routingContext() {
         final RoutingContext routingContext = ResteasyContext.getContextData(RoutingContext.class);
         if (routingContext == null) {
             throw new IllegalStateException("The RoutingContext could not be found in the RESTEasy context");
         }
-        return routingContext;
+        return new DelegateRoutingContext(routingContext);
     }
 
     @Produces
     @RequestScoped
-    public Router router() {
+    // Return a concrete type within this package. See the Javadoc on the delegate for details.
+    DelegateRouter router() {
         final Router router = ResteasyContext.getContextData(Router.class);
         if (router == null) {
             throw new IllegalStateException("The Router could not be found in the RESTEasy context");
         }
-        return router;
+        return new DelegateRouter(router);
     }
 
-    public void closeVertx(@Disposes final Vertx vertx) {
+    void closeVertx(@Disposes final Vertx vertx) {
         VertxManager.get().close();
     }
 }

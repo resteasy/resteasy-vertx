@@ -122,29 +122,3 @@ public class InfoResource {
     }
 }
 ----
-
-=== Running on the Java Module Path
-
-On the class path no extra configuration is required.
-On the Java module path, however, injecting the Vert.x `RoutingContext` and `Router` types requires additional JVM
-options.
-
-`RoutingContext` and `Router` are produced as `@RequestScoped` beans, which is a normal scope, so Weld generates a CDI
-client proxy for each of them.
-On the module path Weld defines that proxy class into the package of the proxied type -- `io.vertx.ext.web`, which is
-owned by the `io.vertx.web` module.
-Two things are needed for this to succeed:
-
-* the target package must be *opened* to Weld so it can define the generated class into it, and
-* the target module must *read* the Weld modules so the generated proxy can link the Weld interfaces it implements.
-
-The following JVM options are required to allow injection of these types into your resources or providers:
-
-[source]
-----
---add-opens io.vertx.web/io.vertx.ext.web=weld.core.impl
---add-reads io.vertx.web=weld.core.impl
---add-reads io.vertx.web=weld.api
-----
-
-The `Vertx` producer is `@Singleton`, so it is not proxied and requires no additional options.
