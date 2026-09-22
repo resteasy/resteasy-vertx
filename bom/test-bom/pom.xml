@@ -20,7 +20,7 @@
 
     <properties>
         <version.dev.resteasy.junit.extension>1.0.0.Final</version.dev.resteasy.junit.extension>
-        <version.org.bouncycastle>1.84</version.org.bouncycastle>
+        <version.org.bouncycastle>1.86</version.org.bouncycastle>
         <version.org.eclipse.parsson>1.1.9</version.org.eclipse.parsson>
         <version.org.junit>5.13.4</version.org.junit>
     </properties>
