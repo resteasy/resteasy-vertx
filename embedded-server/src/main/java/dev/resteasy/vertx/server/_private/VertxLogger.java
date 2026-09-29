@@ -41,6 +41,12 @@ public interface VertxLogger extends BasicLogger {
     @Message(id = 1060, value = "Failed to shutdown HTTP server within %d %s")
     RuntimeException failedToShutdownServer(@Cause Throwable cause, long timeout, String unit);
 
+    @Message(id = 1070, value = "Setting the Dispatcher is not supported by the Vert.x integration")
+    UnsupportedOperationException settingDispatcherNotSupported();
+
+    @Message(id = 1080, value = "The asynchronous job service is not supported by the Vert.x integration")
+    UnsupportedOperationException asyncJobServiceNotSupported();
+
     @LogMessage(level = Logger.Level.ERROR)
     @Message(id = 5000, value = "Failed to handle request")
     void failedRequest(@Cause Throwable e);

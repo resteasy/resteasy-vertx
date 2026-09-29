@@ -16,7 +16,6 @@ import javax.net.ssl.SSLContext;
 import jakarta.ws.rs.SeBootstrap.Configuration;
 import jakarta.ws.rs.SeBootstrap.Configuration.SSLClientAuthentication;
 
-import org.jboss.resteasy.core.ResteasyDeploymentImpl;
 import org.jboss.resteasy.plugins.server.embedded.EmbeddedServer;
 import org.jboss.resteasy.plugins.server.embedded.EmbeddedServers;
 import org.jboss.resteasy.spi.ResteasyDeployment;
@@ -62,7 +61,7 @@ import dev.resteasy.vertx.ssl.SslContextConverter;
 public class VertxEmbeddedServer implements EmbeddedServer {
 
     private final Lock lock = new ReentrantLock();
-    private final ResteasyDeployment deployment;
+    private final VertxResteasyDeployment deployment;
 
     private HttpServer httpServer;
 
@@ -70,7 +69,7 @@ public class VertxEmbeddedServer implements EmbeddedServer {
      * Creates a new embedded server with a default deployment.
      */
     public VertxEmbeddedServer() {
-        this(new ResteasyDeploymentImpl());
+        this(new VertxResteasyDeployment());
     }
 
     /**
@@ -79,7 +78,7 @@ public class VertxEmbeddedServer implements EmbeddedServer {
      *
      * @param deployment the RESTEasy deployment to use
      */
-    protected VertxEmbeddedServer(final ResteasyDeployment deployment) {
+    protected VertxEmbeddedServer(final VertxResteasyDeployment deployment) {
         this.deployment = deployment;
     }
 

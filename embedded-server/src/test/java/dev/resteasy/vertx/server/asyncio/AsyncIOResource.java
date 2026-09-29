@@ -74,6 +74,9 @@ import org.w3c.dom.Element;
 
 import io.vertx.core.Context;
 
+import dev.resteasy.vertx.server.annotations.Blocking;
+import dev.resteasy.vertx.server.annotations.NonBlocking;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Path("async-io")
@@ -145,6 +148,7 @@ public class AsyncIOResource {
 
     @GET
     @Path("blocking-writer-on-io-thread")
+    @NonBlocking
     public BlockingWriterData blockingWriterOnIoThread() {
         Assertions.assertTrue(Context.isOnEventLoopThread());
         return new BlockingWriterData();
@@ -180,6 +184,14 @@ public class AsyncIOResource {
         return CompletableFuture.supplyAsync(() -> new AsyncWriterData(true, "slow-async-worker"));
     }
 
+    @GET
+    @Path("blocking-annotation-on-worker-thread")
+    @Blocking
+    public CompletionStage<String> blockingAnnotationOnWorkerThread() {
+        Assertions.assertFalse(Context.isOnEventLoopThread());
+        return CompletableFuture.completedFuture("blocking-annotation");
+    }
+
     private <T> CompletionStage<T> async(T value) {
         return CompletableFuture.supplyAsync(() -> {
             try {
@@ -192,9 +204,17 @@ public class AsyncIOResource {
     }
 
     @WithBlockingWriterInterceptor
-    @Path("blocking/reject-blocking-interceptor")
+    @Path("blocking-interceptor-on-worker-thread")
     @GET
-    public String getTextRejectBlockingInterceptor() {
+    public String getTextBlockingInterceptorOnWorkerThread() {
+        return "OK";
+    }
+
+    @WithBlockingWriterInterceptor
+    @Path("blocking-interceptor-on-io-thread")
+    @NonBlocking
+    @GET
+    public String getTextBlockingInterceptorOnIoThread() {
         return "OK";
     }
 
