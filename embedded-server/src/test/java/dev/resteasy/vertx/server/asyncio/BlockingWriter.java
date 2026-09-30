@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.MediaType;
@@ -31,7 +31,7 @@ public class BlockingWriter implements MessageBodyWriter<BlockingWriterData> {
             MediaType mediaType, MultivaluedMap<String, Object> httpHeaders, OutputStream entityStream)
             throws IOException, WebApplicationException {
         String resp = Context.isOnEventLoopThread() ? "KO" : "OK";
-        entityStream.write(resp.getBytes(Charset.forName("UTF-8")));
+        entityStream.write(resp.getBytes(StandardCharsets.UTF_8));
         entityStream.close();
     }
 

@@ -8,17 +8,13 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.jboss.resteasy.cdi.CdiInjectorFactory;
-import org.jboss.resteasy.core.ResteasyDeploymentImpl;
-import org.jboss.resteasy.spi.DelegateResteasyDeployment;
 
-class CdiResteasyDeployment extends DelegateResteasyDeployment {
+import dev.resteasy.vertx.server.VertxResteasyDeployment;
+
+class CdiResteasyDeployment extends VertxResteasyDeployment {
 
     private final Lock lock = new ReentrantLock();
     private boolean started = false;
-
-    CdiResteasyDeployment() {
-        super(new ResteasyDeploymentImpl());
-    }
 
     @Override
     public void start() {

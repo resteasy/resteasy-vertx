@@ -61,6 +61,24 @@ public class ResteasyVertxOptions<T> extends Options<T> {
             "dev.resteasy.vertx.server.max.request.size",
             Long.class, () -> 10 * 1024 * 1024L);
 
+    /**
+     * The default to use when deciding whether to invoke a resource method on a worker thread, for methods
+     * that are not annotated with {@code @Blocking} or {@code @NonBlocking} and are not otherwise recognized
+     * as asynchronous (i.e. do not return {@link java.util.concurrent.CompletionStage} and do not have a
+     * parameter annotated with {@code @Suspended}).
+     * <p>
+     * Set to {@code false} for applications that are written in a reactive style by default, so such methods
+     * are invoked on the event loop instead of a worker thread.
+     * </p>
+     * <p>
+     * System property: {@code dev.resteasy.vertx.server.default.blocking}<br>
+     * Default: {@code true}
+     * </p>
+     */
+    public static final ResteasyVertxOptions<Boolean> DEFAULT_BLOCKING = new ResteasyVertxOptions<>(
+            "dev.resteasy.vertx.server.default.blocking",
+            Boolean.class, () -> Boolean.TRUE);
+
     private ResteasyVertxOptions(final String key, final Class<T> name, final Supplier<T> dftValue) {
         super(key, name, dftValue);
     }

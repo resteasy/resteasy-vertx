@@ -92,6 +92,41 @@ public void asyncGet(@Context Vertx vertx, @Suspended AsyncResponse asyncRespons
 }
 ----
 
+=== Blocking vs. Non-Blocking Dispatch
+
+By default, resource methods are dispatched to a Vert.x worker thread via `Vertx.executeBlocking()` before invocation, so blocking code (JDBC, blocking I/O, etc.) is safe to call directly.
+A method is treated as non-blocking -- and invoked directly on the event loop -- if it returns a `CompletionStage` or takes an `@Suspended AsyncResponse` parameter.
+
+`dev.resteasy.vertx.server.annotations.NonBlocking` and `dev.resteasy.vertx.server.annotations.Blocking` override this detection.
+Both can be placed on a resource class (applies to all methods) or on an individual method, and a method-level annotation takes precedence over a class-level one.
+
+`@NonBlocking` forces a method to run on the event loop even though it does not return a `CompletionStage` or take an `@Suspended` parameter:
+
+[source,java]
+----
+@GET
+@Path("/fast")
+@NonBlocking
+public String fast() {
+    // guaranteed to run on the event loop
+    return "OK";
+}
+----
+
+`@Blocking` forces a method onto a worker thread even though its signature would otherwise be detected as non-blocking -- useful when a `CompletionStage`-returning (or `@Suspended`-based) method still performs blocking work before it returns:
+
+[source,java]
+----
+@GET
+@Path("/slow")
+@Blocking
+public CompletionStage<String> slow() {
+    // guaranteed to run on a worker thread, even though this returns a CompletionStage
+    String result = someBlockingCall();
+    return CompletableFuture.completedFuture(result);
+}
+----
+
 === Custom Router Factory
 
 The server uses a Vert.x Web `Router` for request handling.

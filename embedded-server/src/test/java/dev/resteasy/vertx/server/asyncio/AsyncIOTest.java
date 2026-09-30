@@ -84,6 +84,11 @@ public class AsyncIOTest {
         target = client.target(generateURL("/async-io/slow-async-writer-on-worker-thread"));
         val = target.request().get(String.class);
         Assertions.assertEquals("slow-async-worker", val);
+
+        // @Blocking overrides the CompletionStage-based non-blocking detection
+        target = client.target(generateURL("/async-io/blocking-annotation-on-worker-thread"));
+        val = target.request().get(String.class);
+        Assertions.assertEquals("blocking-annotation", val);
     }
 
     @Test
@@ -115,8 +120,18 @@ public class AsyncIOTest {
 
     @Test
     public void testWriters() {
-        // vertx runs on the IO thread so we can't allow blocking interceptors
-        WebTarget target = client.target(generateURL("/async-io/blocking/reject-blocking-interceptor"));
+        // A synchronous writer interceptor is fine when the resource method dispatches to a worker thread (the
+        // default), since we're no longer on the event loop when the interceptor chain runs.
+        WebTarget target = client.target(generateURL("/async-io/blocking-interceptor-on-worker-thread"));
+        Response response = target.request().get();
+        Assertions.assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+        Assertions.assertEquals("blocking", response.getHeaderString("X-Writer"));
+        Assertions.assertEquals("OK", response.readEntity(String.class));
+
+        // A synchronous writer interceptor must still be rejected when the resource method is forced to stay on
+        // the event loop (@NonBlocking), since RESTEasy can't safely move an in-flight interceptor chain to a
+        // worker thread mid-write.
+        target = client.target(generateURL("/async-io/blocking-interceptor-on-io-thread"));
         try {
             target.request().get(String.class);
             Assertions.fail();
